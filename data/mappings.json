@@ -1,0 +1,14 @@
+{
+  "mappings": {
+    "doc": {
+      "properties": {
+        "line_id": {"type": "integer"},
+        "play_name": {"type": "text"},
+        "speech_number": {"type": "integer"},
+        "line_number": {"type": "text"},
+        "speaker": {"type": "text"},
+        "text_entry": {"type": "text"}
+      }
+    }
+  }
+}

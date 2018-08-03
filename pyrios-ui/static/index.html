@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+
+    <title>Shakespeare Data Validation</title>
+  </head>
+  <body>
+
+	<div class="jumbotron">
+        <div class="container">
+          <h1 class="display-3">Shakespeare Data Validation</h1>
+        </div>
+	</div>
+
+	<div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <h3>Elasticsearch Version</h3>
+            <p>Expected Value: 6.2.4</p>
+            <p>Actual: {{.ESVersion}}</p>
+          </div>
+          <div class="col-md-6">
+            <h3>Cluster Status</h3>
+            <p>Expected Value: green</p>
+            <p>Actual: {{.ClusterStatus}}</p>
+          </div>
+          <div class="col-md-6">
+            <h3>Number of shards</h3>
+            <p>Expected Value: 5</p>
+            <p>Actual: {{.NumberOfShards}}</p>
+          </div>
+          <div class="col-md-6">
+            <h3>Number of match_all hits with 'size: 5'</h3>
+            <p>Expected Value: 5</p>
+            <p>Actual: {{.NumberOfHits}}</p>
+          </div>
+          <div class="col-md-6">
+            <h3>Number of hits on 'speaker: LEONATO'</h3>
+            <p>Expected Value: 10</p>
+            <p>Actual: {{.NumberOfLeonatoHits}}</p>
+          </div>
+        </div>
+	</div>
+  </body>
+</html>

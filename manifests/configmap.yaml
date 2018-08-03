@@ -1,0 +1,97 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# configmap for elastic search data nodes
+# https://cloud.google.com/kubernetes-engine/docs/concepts/configmap
+#
+# preStop hook is called immediately before a container is terminated.
+# It is blocking, meaning it is synchronous, so it must complete before the
+# call to delete the container can be sent. No parameters are passed to the handler
+# https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: es-cm
+  labels:
+    component: elasticsearch
+    role: data
+data:
+  # install jq used in pre-stop-hook.sh
+  post-start-hook.sh: |-
+    #!/bin/bash
+    set -e
+    apk --no-cache add jq
+  pre-stop-hook.sh: |-
+    #!/bin/bash
+    set -e
+
+    SERVICE_ACCOUNT_PATH=/var/run/secrets/kubernetes.io/serviceaccount
+    KUBE_TOKEN=$(<${SERVICE_ACCOUNT_PATH}/token)
+    KUBE_NAMESPACE=$(<${SERVICE_ACCOUNT_PATH}/namespace)
+
+    STATEFULSET_NAME=$(echo "${HOSTNAME}" | sed 's/-[0-9]*$//g')
+    INSTANCE_ID=$(echo "${HOSTNAME}" | grep -o '[0-9]*$')
+
+    echo "Prepare stopping of StatefulSet ${KUBE_NAMESPACE}/${HOSTNAME} of StatefulSet ${KUBE_NAMESPACE}/${STATEFULSET_NAME} instance_id ${INSTANCE_ID}"
+
+    INSTANCES_DESIRED=$(curl -s \
+      --cacert ${SERVICE_ACCOUNT_PATH}/ca.crt \
+      -H "Authorization: Bearer $KUBE_TOKEN" \
+      "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_PORT_443_TCP_PORT}/apis/apps/v1/namespaces/${KUBE_NAMESPACE}/statefulsets/${STATEFULSET_NAME}/status" | jq -r '.spec.replicas')
+
+    echo "Desired instance count is ${INSTANCES_DESIRED}"
+
+    if [ "${INSTANCE_ID}" -lt "${INSTANCES_DESIRED}" ]; then
+      echo "No data migration needed"
+      exit 0
+    fi
+
+    echo "Prepare to migrate data of the node"
+
+    NODE_STATS=$(curl -s -XGET 'http://localhost:9200/_nodes/stats')
+    NODE_IP=$(echo "${NODE_STATS}" | jq -r ".nodes[] | select(.name==\"${HOSTNAME}\") | .host")
+
+    echo "Move all data from node ${NODE_IP}"
+
+    # We need to disable the index shard allocation on this IP
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/allocation-filtering.html
+    # you want to decommission a node, and you would like to move the shards
+    # from that node to other nodes in the cluster before shutting it down.
+    curl -s -XPUT localhost:9200/_cluster/settings -d "{
+      \"transient\" :{
+          \"cluster.routing.allocation.exclude._ip\" : \"${NODE_IP}\"
+      }
+    }"
+    echo
+
+    echo "Wait for node to become empty"
+    DOC_COUNT=$(echo "${NODE_STATS}" | jq ".nodes[] | select(.name==\"${HOSTNAME}\") | .indices.docs.count")
+    while [ "${DOC_COUNT}" -gt 0 ]; do
+      NODE_STATS=$(curl -s -XGET 'http://localhost:9200/_nodes/stats')
+      DOC_COUNT=$(echo "${NODE_STATS}" | jq -r ".nodes[] | select(.name==\"${HOSTNAME}\") | .indices.docs.count")
+      echo "Node contains ${DOC_COUNT} documents"
+      sleep 1
+    done
+
+    echo "Wait for node shards to become empty"
+    SHARD_STATS=$(curl -s -XGET 'http://localhost:9200/_cat/shards?format=json')
+    SHARD_COUNT=$(echo "${SHARD_STATS}" | jq "[.[] | select(.node==\"${HOSTNAME}\")] | length")
+    while [ "${SHARD_COUNT}" -gt 0 ]; do
+      SHARD_STATS=$(curl -s -XGET 'http://localhost:9200/_cat/shards?format=json')
+      SHARD_COUNT=$(echo "${SHARD_STATS}" | jq "[.[] | select(.node==\"${HOSTNAME}\")] | length")
+      echo "Node contains ${SHARD_COUNT} shards"
+      sleep 1
+    done
+
+    echo "Node clear to shutdown"

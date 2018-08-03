@@ -1,0 +1,9 @@
+.terraform*
+terraform.tfstate*
+terraform.tfvars
+pyrios/main
+pyrios/pyrios
+pyrios/vet.report
+pyrios-ui/main
+test/__pycache__
+k8s.env

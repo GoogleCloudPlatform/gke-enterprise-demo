@@ -1,0 +1,171 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# StatefulSet for ElasticSearch data
+# See https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: es-data
+  labels:
+    component: elasticsearch
+    role: data
+spec:
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: elasticsearch-data
+  selector:
+    matchLabels:
+        component: elasticsearch
+        role: data
+  template:
+    metadata:
+      labels:
+        component: elasticsearch
+        role: data
+    spec:
+      serviceAccountName: elasticsearch-data
+      initContainers:
+      # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+      # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
+      - name: init-sysctl
+        image: busybox:1.27.2
+        command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        securityContext:
+          privileged: true
+      affinity:
+        podAntiAffinity:
+          # The following sections are two examples of using anti pod affinity.
+          # The uncommented section is enabled, or you can use the other example.
+          # Both cannot be used at the same time, and thuse the required rule
+          # is commented out.
+          #
+          # This is using pod anti-affinity to ensure that the scheduler tries
+          # it best to spread pods
+          # see https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity-beta-feature)
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: component
+                    operator: In
+                    values:
+                    - elasticsearch
+                  - key: role
+                    operator: In
+                    values:
+                    - data
+              topologyKey: kubernetes.io/hostname
+          # use pod anti-affinity to force the scheduler to not deploy two
+          # es-data pod on the same node.
+          #requiredDuringSchedulingIgnoredDuringExecution:
+          # - weight: 100
+            # podAffinityTerm:
+            #   labelSelector:
+            #     matchExpressions:
+            #       - key: component
+            #         operator: In
+            #         values:
+            #         - elasticsearch
+            #       - key: role
+            #         operator: In
+            #         values:
+            #         - data
+            #   topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: es-data
+        image: quay.io/pires/docker-elasticsearch-kubernetes:6.2.4
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: CLUSTER_NAME
+          value: myesdb
+        - name: NODE_MASTER
+          value: "false"
+        - name: NODE_INGEST
+          value: "false"
+        - name: HTTP_ENABLE
+          value: "true"
+        - name: ES_JAVA_OPTS
+          value: -Xms1536m -Xmx1536m
+        - name: NETWORK_HOST
+          value: _site_,_lo_
+        - name: PROCESSORS
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.cpu
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "25m"
+            memory: "1536Mi"
+        ports:
+        - containerPort: 9300
+          name: transport
+        - containerPort: 9200
+          name: http
+        livenessProbe:
+          tcpSocket:
+            port: transport
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health?local=true
+            port: http
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+        - name: config
+          mountPath: /pre-stop-hook.sh
+          subPath: pre-stop-hook.sh
+        - name: config
+          mountPath: /post-start-hook.sh
+          subPath: post-start-hook.sh
+        lifecycle:
+          postStart:
+            exec:
+             command: ["/bin/bash","/post-start-hook.sh"]
+          preStop:
+            exec:
+              command: ["/bin/bash","/pre-stop-hook.sh"]
+      volumes:
+      - name: config
+        configMap:
+          name: es-cm
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      storageClassName: repd-fast
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 12Gi
