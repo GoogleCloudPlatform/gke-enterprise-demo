@@ -73,16 +73,3 @@ spec:
       port: 9200
     - protocol: TCP
       port: 9300
----
-# Nobody can talk to client
-# The default policy of Deny All is applied to any pod with a matching selector
-# and no defined rules
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: nothing-to-client
-  namespace: default
-spec:
-  podSelector:
-    matchLabels:
-      role: client

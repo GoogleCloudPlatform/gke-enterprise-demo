@@ -69,3 +69,5 @@ kubectl --namespace default rollout status -f manifests/es-data-stateful.yaml
 # roll out pdb for master and data nodes
 kubectl --namespace default create -f "$ROOT"/manifests/es-master-pdb.yaml
 kubectl --namespace default create -f "$ROOT"/manifests/es-data-pdb.yaml
+
+kubectl --namespace default create -f "$ROOT"/policy/on-prem-network-policy.yaml

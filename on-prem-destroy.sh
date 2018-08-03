@@ -33,6 +33,7 @@ kubectl config use-context "${ON_PREM_GKE_CONTEXT}"
 # You have to wait the default pod grace period before you can delete the pvcs
 grace=$(kubectl --namespace default get sts -l component=elasticsearch,role=data -o jsonpath='{..terminationGracePeriodSeconds}')
 kubectl --namespace default delete -f "$ROOT"/manifests/
+kubectl --namespace default delete -f "$ROOT"/policy/on-prem-network-policy.yaml
 
 echo "Sleeping ${grace} seconds before deleting PVCs. The default pod grace period."
 sleep "${grace}"

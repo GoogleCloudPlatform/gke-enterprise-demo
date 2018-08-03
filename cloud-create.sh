@@ -42,3 +42,5 @@ kubectl --namespace default rollout status -f "$ROOT"/pyrios/manifests/deploymen
 
 kubectl --namespace default apply -f "$ROOT"/pyrios-ui/manifests
 kubectl --namespace default rollout status -f "$ROOT"/pyrios-ui/manifests/deployment.yaml
+
+kubectl --namespace default apply -f "$ROOT"/policy/cloud-network-policy.yaml

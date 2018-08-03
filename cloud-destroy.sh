@@ -29,7 +29,11 @@ ROOT=$(dirname "${BASH_SOURCE[0]}")
 # shellcheck disable=SC1090
 source "$ROOT"/k8s.env
 
+kubectl config use-context "${CLOUD_GKE_CONTEXT}"
 # delete k8s resources
-kubectl --context "${CLOUD_GKE_CONTEXT}" --namespace default delete -f "$ROOT"/pyrios/manifests
+kubectl --namespace default delete -f "$ROOT"/pyrios/manifests
+kubectl --namespace default delete -f "$ROOT"/pyrios-ui/manifests
 # delete config map
-kubectl --context "${CLOUD_GKE_CONTEXT}" --namespace default delete configmap esconfig
+kubectl --namespace default delete configmap esconfig
+# delete network policy
+kubectl --namespace default delete -f "$ROOT"/policy/cloud-network-policy.yaml

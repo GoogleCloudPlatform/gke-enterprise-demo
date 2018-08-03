@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 // Provisions an elasticsearch cluster in GKE (simulates on prem) and cloud GKE cluster
 
 // https://cloud.google.com/vpn/docs/concepts/choosing-networks-routing

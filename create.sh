@@ -31,6 +31,3 @@ ROOT=$(dirname "${BASH_SOURCE[0]}")
 "$ROOT"/on-prem-create.sh
 # create cloud k8s resouces
 "$ROOT"/cloud-create.sh
-# TODO: fix network policy. As it stands now pyrios can't reach ES.
-# apply network policy
-# "$ROOT"/policy.sh

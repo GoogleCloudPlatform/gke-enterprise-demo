@@ -91,10 +91,8 @@ spec:
     stage('Linting') {
       steps {
         container('k8s-node') {
-          dir('gke-on-prem-database-demo') {
             // This will run all of our source code linting
             sh "make linting"
-          }
         }
       }
     }
@@ -106,10 +104,8 @@ spec:
                 // you can set Terraform variables via environment variables
                 env.TF_VAR_shared_secret = "cicd"
             }
-          dir('gke-on-prem-database-demo') {
             // This will run terraform init and terraform apply
             sh "make terraform"
-          }
         }
       }
     }
@@ -117,10 +113,8 @@ spec:
     stage('Create') {
       steps {
         container('k8s-node') {
-          dir('gke-on-prem-database-demo') {
             sh "make config"
             sh "make create"
-          }
         }
       }
     }
@@ -128,7 +122,6 @@ spec:
     stage('Test') {
       steps {
         container('k8s-node') {
-          dir('gke-on-prem-database-demo') {
             // This will create k8s.env which contains context names
             sh "make config"
             // This will port-forward to the pyrios pod on port 9200
@@ -138,7 +131,6 @@ spec:
             // This will use local port 9200 to validate that the loaded data
             // is correct
             sh "make validate"
-          }
         }
       }
     }
@@ -153,12 +145,10 @@ spec:
               // you can set Terraform variables via environment variables
               env.TF_VAR_shared_secret = "cicd"
           }
-        dir('gke-on-prem-database-demo') {
           // This will create k8s.env which contains context names
           sh "make config"
           // This will destroy all of the resources created in this demo
           sh "make teardown"
-        }
       }
     }
   }
