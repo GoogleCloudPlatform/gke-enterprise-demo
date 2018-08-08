@@ -171,6 +171,11 @@ Then it prompts you for a shared secret for VPN:
 var.shared_secret
   Enter a value:
 ```
+VPN tunnels need a shared secret so they can encrypt their communications.
+The shared secret is temporarily stored as a Terraform variable which is what
+creates the prompt. Due to Terraform handling the variable you will have to
+enter the same shared secret when tearing down the VPNs.
+
 Finally it asks for confirmation
 to go ahead with the deployment and build out the two networks,
 each with a GKE cluster.
@@ -199,11 +204,11 @@ kubeconfig entry generated for cloud-cluster.
 
 ### Elasticsearch API exposed via ILB (Internal Load Balancer)
 
-In order to expose the on premise Elasticsearch as a *service* to the
+In order to expose the on-premise Elasticsearch as a *service* to the
 cloud Kubernetes Engine cluster, we need to expose it via an Internal Load
-Balancer(ILB).  By doing so, the Elasticsearch cluster can be accessed
-by any application running in the cloud. The traffic will be travel
-through the VPN between the cloud Kubernetes Engine and the on prem Kubernetes Engine clusters.
+Balancer (ILB).  By doing so, the Elasticsearch cluster can be accessed
+by any application running in the cloud. The traffic will travel
+through the VPN tunnel between the cloud network and the on-prem network.
 `es-svc.yaml` shows how it is implemented by a kubernetes annotation,
 `cloud.google.com/load-balancer-type: "Internal"`, which specifies that
 an internal load balancer is to be configured. Please refer to [Creating
@@ -313,8 +318,10 @@ Shakespeare match query on speaker LEONATO has the expected numbers of hits
 ### UI
 
 There is a UI that demonstrates usage of Stackdriver Tracing and custom
-Stackdriver metrics. You can view the UI by running `make expose-ui`.
-In your browser visit [localhost:8080](http://localhost:8080). Each
+Stackdriver metrics. You can view the UI by running `make expose-ui`. You will
+need to have port 8080 available on your machine before running
+`make expose-ui`. In your browser visit
+[localhost:8080](http://localhost:8080). Each
 time the UI page is refreshed it creates traces and metrics.
 
 The custom metric is called `custom/pyrios-ui/numberOfLeonatoHits` and can
@@ -355,6 +362,10 @@ It will run the following commands:
     ```console
     gcloud auth application-default login
     ```
+2. `make expose-ui` is not working:
+
+    Make sure that port 8080 is not being used by another process on your
+    machine. It's a very common port for development servers, etc.
 
 ## Relevant Material
 
