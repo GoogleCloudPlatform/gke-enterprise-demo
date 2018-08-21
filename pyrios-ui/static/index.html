@@ -1,51 +1,84 @@
+
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Helmsman GKE Enterprise Best Practices - Shakespeare Data Validation</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
-
-    <title>Shakespeare Data Validation</title>
+    <!-- Custom styles for this template -->
+    <link href="pricing.css" rel="stylesheet">
   </head>
+
   <body>
 
-	<div class="jumbotron">
-        <div class="container">
-          <h1 class="display-3">Shakespeare Data Validation</h1>
-        </div>
-	</div>
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+      <h5 class="my-0 mr-md-auto font-weight-normal">Helmsman GKE Enterprise Best Practices</h5>
+      <nav class="my-2 my-md-0 mr-md-3">
+        <!-- TODO fix github link -->
+        <a class="p-2 text-dark" aria-label="GitHub" href="#">GitHub</a>
+      </nav>
+    </div>
 
-	<div class="container">
-        <div class="row">
-          <div class="col-md-6">
-            <h3>Elasticsearch Version</h3>
-            <p>Expected Value: 6.2.4</p>
-            <p>Actual: {{.ESVersion}}</p>
+    <section class="jumbotron text-center">
+      <div class="container">
+        <h1 class="jumbotron-heading">Shakespeare Data</h1>
+        <!-- TODO improve this copy -->
+        <p class="lead text-muted">Data from communicating with the ElasticSearch Cluster.</p>
+      </div>
+    </section>
+    <div class="container">
+      <div class="card-deck mb-3 text-center">
+        <div class="card mb-4 box-shadow">
+          <div class="card-header">
+            <h4 class="my-0 font-weight-normal">Elasticsearch Version</h4>
           </div>
-          <div class="col-md-6">
-            <h3>Cluster Status</h3>
-            <p>Expected Value: green</p>
-            <p>Actual: {{.ClusterStatus}}</p>
-          </div>
-          <div class="col-md-6">
-            <h3>Number of shards</h3>
-            <p>Expected Value: 5</p>
-            <p>Actual: {{.NumberOfShards}}</p>
-          </div>
-          <div class="col-md-6">
-            <h3>Number of match_all hits with 'size: 5'</h3>
-            <p>Expected Value: 5</p>
-            <p>Actual: {{.NumberOfHits}}</p>
-          </div>
-          <div class="col-md-6">
-            <h3>Number of hits on 'speaker: LEONATO'</h3>
-            <p>Expected Value: 10</p>
-            <p>Actual: {{.NumberOfLeonatoHits}}</p>
+          <div class="card-body">
+            <ul class="list-unstyled mt-3 mb-4">
+            <li>Expected Value: 6.2.4</li>
+            <li>Actual: {{.ESVersion}}</li>
+            </ul>
           </div>
         </div>
-	</div>
+        <div class="card mb-4 box-shadow">
+          <div class="card-header">
+            <h4 class="my-0 font-weight-normal">Cluster Status</h4>
+          </div>
+          <div class="card-body">
+            <ul class="list-unstyled mt-3 mb-4">
+              <li>Expected Value: green</li>
+              <li>Actual: {{.ClusterStatus}}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card mb-4 box-shadow">
+          <div class="card-header">
+            <h4 class="my-0 font-weight-normal">Number of Shards</h4>
+          </div>
+          <div class="card-body">
+            <ul class="list-unstyled mt-3 mb-4">
+              <li>Expected Value: 5</li>
+              <li>Actual: {{.NumberOfHits}}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card mb-4 box-shadow">
+          <div class="card-header">
+            <h4 class="my-0 font-weight-normal">Number of Results Where Speaker is LEONATO</h4>
+          </div>
+          <div class="card-body">
+            <ul class="list-unstyled mt-3 mb-4">
+              <li>Expected Value: 10</li>
+              <li>Actual: {{.NumberOfLeonatoHits}}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
