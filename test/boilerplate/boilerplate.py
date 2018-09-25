@@ -16,8 +16,8 @@
 # Verifies that all source files contain the necessary copyright boilerplate
 # snippet.
 # This is based on existing work
-# https://github.com/kubernetes/test-infra/blob/master/hack
-# /verify_boilerplate.py
+# https://github.com/kubernetes/test-infra/blob/master/hack/verify_boilerplate.py
+
 from __future__ import print_function
 import argparse
 import glob
@@ -41,7 +41,7 @@ def get_args():
                         help="list of files to check, "
                              "all files if unspecified",
                         nargs='*')
-    rootdir = os.path.dirname(__file__) + "/../"
+    rootdir = os.path.dirname(__file__) + "/../../"
     rootdir = os.path.abspath(rootdir)
     parser.add_argument(
         "--rootdir",
@@ -150,7 +150,7 @@ def get_file_extension(filename):
 # These directories will be omitted from header checks
 SKIPPED_DIRS = [
     'Godeps', 'third_party', '_gopath', '_output',
-    '.git', 'vendor', '__init__.py', 'node_modules'
+    '.git', 'vendor', '__init__.py', 'node_modules', '.idea'
 ]
 
 

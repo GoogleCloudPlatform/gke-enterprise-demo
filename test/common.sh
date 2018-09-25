@@ -12,22 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.10.1 AS build
-WORKDIR /go/src/app
-COPY . .
-RUN go get -d && CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -o pyrios -v .
+#!/usr/bin/env bash
 
-FROM debian:stretch-slim
-# hadolint ignore=DL3008
-RUN \
-    apt-get update \
-    && apt-get install --no-install-recommends -y ca-certificates \
-    && useradd -ms /bin/bash -U app \
-    && apt-get -y autoremove \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-USER app
-WORKDIR /home/app
-COPY --chown=app --from=build /go/src/app/pyrios .
-EXPOSE  9200
-ENTRYPOINT ["/home/app/pyrios"]
+# common.sh has helper functions, and is sourced by the other scripts in this directory
+set -o errexit
+set -o nounset
+set -o pipefail
+
+PROJECT_ROOT=$(dirname "${BASH_SOURCE}")/..

@@ -70,10 +70,10 @@ check_shebangs:
 check_trailing_whitespace:
 	@source test/make.sh && check_trailing_whitespace
 
-# .PHONY: check_headers
-# check_headers:
-# 	@echo "Checking file headers"
-# 	@python test/verify_boilerplate.py
+.PHONY: check_headers
+check_headers:
+	test/verify-boilerplate.sh
+
 # Step 1: bootstrap is used to make sure all the GCP service below are enabled
 # prior to the terraform step
 .PHONY: bootstrap
@@ -153,7 +153,9 @@ bazel-clean:
 
 .PHONY: bazel-test
 bazel-test:
-	bazel ${BAZEL_OPTIONS} test //pyrios/... //pyrios-ui/... //hack:verify-all --test_output=errors
+	bazel ${BAZEL_OPTIONS} test \
+	--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+	//pyrios/... //pyrios-ui/... //test:verify-all --test_output=errors
 
 # build for your host OS, for local development/testing (not in docker)
 .PHONY: bazel-build-pyrios
@@ -205,7 +207,7 @@ bazel-push-pyrios-ui:
 		--define REPOSITORY=${PYRIOS_UI_REPO} \
 		--define TAG=${PYRIOS_UI_TAG} \
 		//pyrios-ui:push
- 
+
 .PHONY: bazel-push-images
 bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
 
@@ -226,5 +228,4 @@ deploy:
 gofmt:
 	gofmt -s -w pyrios-ui/
 	gofmt -s -w pyrios/
-
 
