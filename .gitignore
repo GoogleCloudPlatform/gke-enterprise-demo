@@ -1,5 +1,9 @@
+.DS_Store
+.idea/
+
 .terraform*
 terraform.tfstate*
+**tfplan**
 terraform.tfvars
 pyrios/main
 pyrios/pyrios
@@ -7,3 +11,7 @@ pyrios/vet.report
 pyrios-ui/main
 test/__pycache__
 k8s.env
+
+
+# bazel
+bazel-**
