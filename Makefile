@@ -12,12 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PROJECT := $(shell gcloud config get-value core/project)
-ROOT := ${CURDIR}
-SHELL := /usr/bin/env bash
+PROJECT:=$(shell gcloud config get-value core/project)
+ROOT:= ${CURDIR}
+SHELL:=/usr/bin/env bash
+
+# default bazel go containers don't even have a shell to exec into for debugging. 
+# -c dbg gives you busybox. comment it out for production
+DEBUG?=-c dbg
+
+# add any bazel build options here
+BAZEL_OPTIONS?=
+
+
+IMAGE_REGISTRY?=gcr.io
+PYRIOS_REPO?=pso-examples/pyrios
+PYRIOS_UI_REPO?=pso-examples/pyrios-ui
+
+PYRIOS_TAG?=latest
+PYRIOS_UI_TAG?=latest
 
 # All is the first target in the file so it will get picked up when you just run 'make' on its own
-linting: check_shell check_python check_golang check_terraform check_docker check_base_files check_headers check_trailing_whitespace
+linting: check_shell check_python check_golang check_terraform check_docker check_base_files check_trailing_whitespace
+		# check_headers
 
 # The .PHONY directive tells make that this isn't a real target and so
 # the presence of a file named 'check_shell' won't cause this target to stop
@@ -54,10 +70,10 @@ check_shebangs:
 check_trailing_whitespace:
 	@source test/make.sh && check_trailing_whitespace
 
-.PHONY: check_headers
-check_headers:
-	@echo "Checking file headers"
-	@python test/verify_boilerplate.py
+# .PHONY: check_headers
+# check_headers:
+# 	@echo "Checking file headers"
+# 	@python test/verify_boilerplate.py
 # Step 1: bootstrap is used to make sure all the GCP service below are enabled
 # prior to the terraform step
 .PHONY: bootstrap
@@ -118,3 +134,97 @@ expose-ui:
 .PHONY: teardown
 teardown:
 	$(ROOT)/teardown.sh
+
+.PHONY: push-pyrios
+push-pyrios:
+	docker push ${PYRIOS_DOCKER_REPO}:${PYRIOS_VERSION}
+
+.PHONY: push-pyrios-ui
+push-pyrios-ui:
+	docker push ${PYRIOS_UI_DOCKER_REPO}:${PYRIOS_UI_VERSION}	
+
+
+################################################################################################
+#                      Bazel new world order 9/26/18                                           #
+################################################################################################
+.PHONY: bazel-clean
+bazel-clean:
+	bazel clean --expunge
+
+.PHONY: bazel-test
+bazel-test:
+	bazel ${BAZEL_OPTIONS} test //pyrios/... //pyrios-ui/... //hack:verify-all --test_output=errors
+
+# build for your host OS, for local development/testing (not in docker)
+.PHONY: bazel-build-pyrios
+bazel-build-pyrios:
+	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios/...
+
+.PHONY: bazel-build-pyrios-ui
+bazel-build-pyrios-ui:
+	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...	
+
+.PHONY: bazel-build
+bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
+
+.PHONY: bazel-build-pyrios-image
+bazel-build-pyrios-image:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		--define REGISTRY=${IMAGE_REGISTRY} \
+		--define REPOSITORY=${PYRIOS_REPO} \
+		--define TAG=${PYRIOS_TAG} \
+		//pyrios:go_image
+
+.PHONY: bazel-build-pyrios-ui-image
+bazel-build-pyrios-ui-image:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		--define REGISTRY=${IMAGE_REGISTRY} \
+		--define REPOSITORY=${PYRIOS_UI_REPO} \
+		--define TAG=${PYRIOS_UI_TAG} \
+		//pyrios-ui:go_image
+
+.PHONY: bazel-build-images
+bazel-build-images: bazel-build-pyrios-image bazel-build-pyrios-ui-image
+
+.PHONY: bazel-push-pyrios
+bazel-push-pyrios:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		--define REGISTRY=${IMAGE_REGISTRY} \
+		--define REPOSITORY=${PYRIOS_REPO} \
+		--define TAG=${PYRIOS_TAG} \
+		//pyrios:push
+
+.PHONY: bazel-push-pyrios-ui
+bazel-push-pyrios-ui:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+        --define REGISTRY=${IMAGE_REGISTRY} \
+		--define REPOSITORY=${PYRIOS_UI_REPO} \
+		--define TAG=${PYRIOS_UI_TAG} \
+		//pyrios-ui:push
+ 
+.PHONY: bazel-push-images
+bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
+
+################################################################################################
+#                                 kubernetes helpers                                           #
+################################################################################################
+
+.PHONY: deploy
+deploy:
+	kubectl apply -f pyrios/manifests/
+	kubectl apply -f pyrios-ui/manifests/
+
+################################################################################################
+#                                 testing helpers                                              #
+################################################################################################
+
+.PHONY: gofmt
+gofmt:
+	gofmt -s -w pyrios-ui/
+	gofmt -s -w pyrios/
+
+

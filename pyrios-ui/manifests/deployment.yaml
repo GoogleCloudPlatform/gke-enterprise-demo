@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: pyrios-ui
-        image: gcr.io/pso-examples/pyrios-ui:1.0.1
+        image: gcr.io/pso-examples/pyrios-ui:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
