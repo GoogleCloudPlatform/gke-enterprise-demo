@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: pyrios
-        image: gcr.io/pso-examples/pyrios:1.0.0
+        image: gcr.io/pso-examples/pyrios:latest
         env:
         - name: ES_SERVER
           valueFrom:

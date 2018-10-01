@@ -25,8 +25,8 @@ package main
 import (
 	"cloud.google.com/go/compute/metadata"
 	"context"
-	"fmt"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"fmt"
 	"go.opencensus.io/trace"
 	"io"
 	"log"

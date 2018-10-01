@@ -30,9 +30,9 @@ import (
 
 	"cloud.google.com/go/compute/metadata"
 	monitoring "cloud.google.com/go/monitoring/apiv3"
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	googlepb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/tidwall/gjson"
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
 	metricpb "google.golang.org/genproto/googleapis/api/metric"
 	monitoredrespb "google.golang.org/genproto/googleapis/api/monitoredres"
