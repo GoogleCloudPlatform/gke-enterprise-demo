@@ -32,16 +32,26 @@ done;
 # releasing to OSS are present
 function basefiles() {
   echo "Checking for required files"
+
   test -f CONTRIBUTING.md || echo "Missing CONTRIBUTING.md"
   test -f LICENSE || echo "Missing LICENSE"
   test -f README.md || echo "Missing README.md"
+
+  if ! [ "$( test -f CONTRIBUTING.md && test -f LICENSE && test -f README.md )" ]; then
+    echo " > All Required OSS files were found"
+    echo ""
+  fi
 }
 
 # This function runs the hadolint linter on
 # every file named 'Dockerfile'
+# using git ls-files because we're essentially linting for version control
 function docker() {
-  echo "Running hadolint on Dockerfiles"
-  find . -name "Dockerfile" -exec hadolint {} \;
+  echo "Linting Dockerfiles"
+  if ! [ "$(git ls-files | grep "Dockerfile" | xargs hadolint)" ]; then
+    echo " > Dockerfiles conform to spec"
+    echo ""
+  fi
 }
 
 # This function runs 'terraform validate' against all
@@ -49,39 +59,46 @@ function docker() {
 function check_terraform() {
   echo "Running terraform validate"
   #shellcheck disable=SC2156
-  find . -name "*.tf" -exec bash -c 'terraform validate --check-variables=false $(dirname "{}")' \;
-}
-
-# This function runs 'go fmt' and 'go vet' on eery file
-# that ends in '.go'
-function golang() {
-  echo "Running go fmt and go vet"
-  find . -name "*.go" -exec go fmt {} \;
-  find . -name "*.go" -exec go vet {} \;
+  if ! [ "$(find . -name "*.tf" -exec bash -c 'terraform validate --check-variables=false $(dirname "{}")' \;)"  ]; then
+    echo " > terraform code conforms to spec"
+    echo ""
+  fi
 }
 
 # This function runs the flake8 linter on every file
 # ending in '.py'
 function check_python() {
   echo "Running flake8"
-  find . -name "*.py" -exec flake8 {} \;
+  if ! [ "$(find . -name "*.py" -exec flake8 {} \;)" ]; then
+    echo " > python code conforms to spec"
+    echo ""
+  fi
 }
 
 # This function runs the shellcheck linter on every
 # file ending in '.sh'
 function check_shell() {
   echo "Running shellcheck"
-  find . -name "*.sh" -exec shellcheck -x {} \;
+  if ! [ "$(git ls-files --exclude="*.sh" -i | xargs shellcheck -e SC1128 -e SC1090 -x)" ]; then
+    echo " > Shell files conform to spec"
+    echo ""
+  else
+    git ls-files --exclude="*.sh" -i | xargs shellcheck -e SC1128 -e SC1090 -x
+  fi
 }
 
 # This function makes sure that there is no trailing whitespace
 # in any files in the project.
 # There are some exclusions
 function check_trailing_whitespace() {
-  echo "The following lines have trailing whitespace"
-  grep -r '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" .
-  rc=$?
-  if [ $rc = 0 ]; then
+  echo "Checking trailing whitespace"
+  # get a list of our files in git and print out what needs to change (with line numbers)
+  if [[ $(git ls-files | grep -v ".png" | xargs grep -nr '[[:blank:]]$' | wc -l) -gt 0 ]]; then
+    echo "Files with extra whitespace detected"
+    git ls-files | grep -v ".png" | xargs grep -nr '[[:blank:]]$'
     exit 1
+  else
+    echo " > Trailing whitespace conforms to spec"
+    echo ""
   fi
 }

@@ -122,27 +122,3 @@ go_repository(
     importpath = "golang.org/x/sync",
     commit = "1d60e4601c6fd243af51cc01ddf169918a5407ca",
 )
-
-go_repository(
-    name = "go_googleapis",
-    importpath = "google.golang.org/api",
-    commit = "e5ba110cb6cd042d05ea6ea2ce9dd13198c6387a",
-)
-
-go_repository(
-    name = "org_golang_google_grpc",
-    importpath = "google.golang.org/grpc",
-    tag = "v1.15.0",
-)
-
-go_repository(
-    name = "org_golang_google_grpc",
-    importpath = "google.golang.org/grpc",
-    tag = "v1.15.0",
-)
-
-go_repository(
-    name = "com_github_golang_protobuf",
-    importpath = "github.com/golang/protobuf",
-    tag = "v1.0.0",
-)
