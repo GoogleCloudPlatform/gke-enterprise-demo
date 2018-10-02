@@ -19,5 +19,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+
+# shellcheck source=../
+# next line disables the unused variable warning. this script is a helper to set PROJECT_ROOT
+# and other common variables for the rest of the scripts
 # shellcheck disable=SC2034
 PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..

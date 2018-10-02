@@ -14,7 +14,7 @@
 
 #!/usr/bin/env bash
 
-# shellcheck disable=SC1090
+# shellcheck source=test/common.sh
 . "$(dirname "${BASH_SOURCE[@]}")/common.sh"
 
 

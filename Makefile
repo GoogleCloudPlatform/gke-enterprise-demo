@@ -16,13 +16,13 @@ PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:= ${CURDIR}
 SHELL:=/usr/bin/env bash
 
-# default bazel go containers don't even have a shell to exec into for debugging
-# -c dbg gives you busybox. comment it out for production
+# we're building images based on [distroless](https://github.com/GoogleContainerTools/distroless) are so minimal
+# that they don't have a shell to exec into which makes it difficult to do traditional k8s debugging
+# this option includes busybox but should be omitted for production
 DEBUG?=-c dbg
 
 # add any bazel build options here
 BAZEL_OPTIONS?=
-
 
 IMAGE_REGISTRY?=gcr.io
 PYRIOS_REPO?=pso-examples/pyrios
@@ -32,7 +32,8 @@ PYRIOS_TAG?=latest
 PYRIOS_UI_TAG?=latest
 
 # All is the first target in the file so it will get picked up when you just run 'make' on its own
-lint_code: check_shell check_python check_gofmt check_terraform check_docker check_base_files check_trailing_whitespace check_headers
+.PHONY: lint
+lint: check_shell check_python check_gofmt check_terraform check_docker check_base_files check_trailing_whitespace check_headers
 
 # The .PHONY directive tells make that this isn't a real target and so
 # the presence of a file named 'check_shell' won't cause this target to stop
@@ -141,7 +142,6 @@ push-pyrios:
 .PHONY: push-pyrios-ui
 push-pyrios-ui:
 	docker push ${PYRIOS_UI_DOCKER_REPO}:${PYRIOS_UI_VERSION}
-
 
 ################################################################################################
 #                      Bazel new world order 9/26/18                                           #
