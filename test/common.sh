@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env bash
-
 # common.sh has helper functions, and is sourced by the other scripts in this directory
 set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(dirname "${BASH_SOURCE}")/..
+# shellcheck disable=SC2034
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..

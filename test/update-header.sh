@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#!/usr/bin/env bash
 
-. $(dirname "${BASH_SOURCE}")/common.sh
+# shellcheck disable=SC1090
+. "$(dirname "${BASH_SOURCE[@]}")/common.sh"
+
 
 # creates a trimmed list of the files that need updates based on the boilerplate.py
-BAD_HEADERS=$((python ${PROJECT_ROOT}/test/boilerplate/boilerplate.py || true) | sed -e 1d )
+BAD_HEADERS=$( (python "${PROJECT_ROOT}"/test/boilerplate/boilerplate.py || true) | sed -e 1d )
 
 # we're only going to auto-update certain filetypes. include any filetype that you need to update in this list
 FORMATS="sh go Makefile Dockerfile py tf yaml yml"
 
-YEAR=`date +%Y`
+YEAR=$(date +%Y)
 
 for i in ${FORMATS}
 do
@@ -32,10 +33,10 @@ do
 	do
 		:
 		# these are what our headers should look like. we'll update the year to reflect today
-		HEADER=$(cat ${PROJECT_ROOT}/test/boilerplate/boilerplate.${i}.txt | sed "s/YEAR/${YEAR}/")
+		HEADER=$(< "${PROJECT_ROOT}"/test/boilerplate/boilerplate."${i}".txt sed "s/YEAR/${YEAR}/")
 
 		# read the actual header/top of of the file, it will be needed to substitute
-		value=$(<${j})
+		value=$(<"${j}")
 
 		# since we iterate over the formats, we need to skip updates during incorrect formats
 		if [[ "$j" != *$i ]]
@@ -50,8 +51,8 @@ do
 		else
 			text="$HEADER
 $value"
-				echo ${j}
-				echo "$text" > ${j}
+				echo "${j}"
+				echo "$text" > "${j}"
 			fi
 	done
 done

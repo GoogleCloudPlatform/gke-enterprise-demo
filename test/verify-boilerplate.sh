@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,51 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This is a wrapper for test/boilerplate/boilerplate.py which has the 
-# meat of the logic.
+#!/usr/bin/env bash
+
+# This is a wrapper for test/boilerplate/boilerplate.py which has the meat of the matching logic
 
 # Wrapper for the meat of the boilerplate code at test/boilerpolate/boilerplate.py
-. $(dirname "${BASH_SOURCE}")/common.sh
+. "$(dirname "${BASH_SOURCE[@]}")/common.sh"
 
+echo "Checking boilerplate"
 # grabs only the array of files that need to be updated
-boiler=$((python ${PROJECT_ROOT}/test/boilerplate/boilerplate.py || true) | sed -e 1d)
+boiler=$( (python "${PROJECT_ROOT}/test/boilerplate/boilerplate.py" || true) | sed -e 1d)
 
-files_need_boilerplate=( $boiler )
 
-if [[ -z ${files_need_boilerplate+x} ]]; then
-    exit
+if ! [[ $boiler -gt 0 ]]; then
+  echo " > boilerplate headers conform to spec"
+  echo ""
+  exit 0
 fi
 
-# these are INDIVIDUAL files that need to be excluded. a common use is generated code 
+files_need_boilerplate=( "$boiler" )
+
+# these are INDIVIDUAL files that need to be excluded. a common use is generated code
 TO_REMOVE=()
 
 # The files we actually want to update will get pushed on this array
 FINAL_LIST=()
-
-
-# if there are items in TO_REMOVE, we need to find them and exclude them
-if [[ ${#TO_REMOVE[@]} -gt 0 ]]
-then
-  
-  for pkg in "${files_need_boilerplate[@]}"; do
+for pkg in "${files_need_boilerplate[@]}"; do
+    KEEP=true
+    # if there are no items in TO_REMOVE, we have to skip this loop
+    if [[ ${#TO_REMOVE[@]} -gt 0 ]]; then
       for remove in "${TO_REMOVE[@]}"; do
-          KEEP=true
-          if [[ ${pkg} == ${remove} ]]; then
+          if [[ "${pkg}" == "${remove}" ]]; then
               KEEP=false
               break
           fi
       done
-      if ${KEEP}; then
-          FINAL_LIST+=(${pkg})
-      fi
-  done
-# if not, then our original list is correct so let's use it for output
-else
-  FINAL_LIST=$files_need_boilerplate
-fi
+    fi
+    # if the file was not on the remove list, we'll add it to final_list
+    if ${KEEP}; then
+        FINAL_LIST+=("${pkg}")
+    fi
+done
+
 
 # if there's something in that list, we'll echo the files that need help and exit with an error code
 if [[ ${#FINAL_LIST[@]} -gt 0 ]]; then
+
+  echo "${#FINAL_LIST[@]}: ${FINAL_LIST[0]}"
   for file in "${FINAL_LIST[@]}"; do
     echo "FAIL: Boilerplate header is wrong for: ${file}"
   done

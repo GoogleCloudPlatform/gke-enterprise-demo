@@ -15,7 +15,7 @@
 # limitations under the License.
 # Verifies that all source files contain the necessary copyright boilerplate
 # snippet.
-# This is based on existing work
+# This is based on existing work:
 # https://github.com/kubernetes/test-infra/blob/master/hack/verify_boilerplate.py
 
 from __future__ import print_function

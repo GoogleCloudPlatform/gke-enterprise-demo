@@ -14,12 +14,10 @@
 
 #!/usr/bin/env bash
 
-GOFMT="gofmt -s -w"
-
-# grep the commited .go files 
+# grep the commited .go files.
 # ignore anything vendored (probably will go away someday, but for reuse)
 # advise which are broken and tell user how to fix it!
-bad_files=$(git ls-files "*.go" | grep -v vendor | xargs -I {} $GOFMT -l {})
+bad_files=$(git ls-files "*.go" | grep -v vendor | xargs gofmt -d )
 if [[ -n "${bad_files}" ]]; then
   echo "FAIL: '$GOFMT' needs to be run on the following files: "
   echo "${bad_files}"

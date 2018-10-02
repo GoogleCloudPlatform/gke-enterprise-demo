@@ -92,7 +92,7 @@ spec:
       steps {
         container('k8s-node') {
             // This will run all of our source code linting
-            sh "make linting"
+            sh "make lint_code"
         }
       }
     }

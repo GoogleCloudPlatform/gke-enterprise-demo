@@ -16,7 +16,7 @@ PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:= ${CURDIR}
 SHELL:=/usr/bin/env bash
 
-# default bazel go containers don't even have a shell to exec into for debugging. 
+# default bazel go containers don't even have a shell to exec into for debugging
 # -c dbg gives you busybox. comment it out for production
 DEBUG?=-c dbg
 
@@ -32,8 +32,7 @@ PYRIOS_TAG?=latest
 PYRIOS_UI_TAG?=latest
 
 # All is the first target in the file so it will get picked up when you just run 'make' on its own
-linting: check_shell check_python check_golang check_terraform check_docker check_base_files check_trailing_whitespace
-		# check_headers
+lint_code: check_shell check_python check_gofmt check_terraform check_docker check_base_files check_trailing_whitespace check_headers
 
 # The .PHONY directive tells make that this isn't a real target and so
 # the presence of a file named 'check_shell' won't cause this target to stop
@@ -46,9 +45,9 @@ check_shell:
 check_python:
 	@source test/make.sh && check_python
 
-.PHONY: check_golang
-check_golang:
-	@source test/make.sh && golang
+.PHONY: check_gofmt
+check_gofmt:
+	@test/verify-gofmt.sh
 
 .PHONY: check_terraform
 check_terraform:
@@ -72,7 +71,7 @@ check_trailing_whitespace:
 
 .PHONY: check_headers
 check_headers:
-	test/verify-boilerplate.sh
+	@source test/make.sh && test/verify-boilerplate.sh
 
 # Step 1: bootstrap is used to make sure all the GCP service below are enabled
 # prior to the terraform step
@@ -141,7 +140,7 @@ push-pyrios:
 
 .PHONY: push-pyrios-ui
 push-pyrios-ui:
-	docker push ${PYRIOS_UI_DOCKER_REPO}:${PYRIOS_UI_VERSION}	
+	docker push ${PYRIOS_UI_DOCKER_REPO}:${PYRIOS_UI_VERSION}
 
 
 ################################################################################################
@@ -164,7 +163,7 @@ bazel-build-pyrios:
 
 .PHONY: bazel-build-pyrios-ui
 bazel-build-pyrios-ui:
-	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...	
+	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...
 
 .PHONY: bazel-build
 bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
