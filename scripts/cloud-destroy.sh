@@ -14,12 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# In order to not expose this project to the internet with a Cloud Load Balancer
-# we are instead port-forwarding to the node and exposing the pod port
-
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "-  port-forward to pyrios pod of the cloud GKE cluster  -"
+# "-  Uninstalls all k8s resources and deletes             -"
+# "-  the GKE cluster                                      -"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
@@ -27,15 +25,21 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
-echo "kubectl uses ${CLOUD_GKE_CONTEXT}"
-kubectl config use-context "${CLOUD_GKE_CONTEXT}"
-# look up the pyrios pod id by the label app=pyrios
-POD_ID=$(kubectl --namespace default get pods -l app=pyrios -o jsonpath='{.items[*].metadata.name}')
-# set up port forwarding from the laptop/desktop to the pyrios pod
-# so that we can talk to the Elasticsearch on prem ILB (internal load balancer)
-# via pyrios pod
-kubectl --namespace default port-forward "${POD_ID}" 9200:9200 &
+source "$PROJECT_ROOT"/k8s.env
+
+# try to set context to cloud cluster. if we can't set that context, we can't do anything else
+# in this file, so we can exit
+if [[ ! $(kubectl config use-context "${CLOUD_GKE_CONTEXT}") ]]; then
+	echo "cloud cluster was not found; skipping cluster teardown"
+	exit 1
+fi
+
+# delete k8s resources
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests || true
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests || true
+# delete config map
+kubectl --namespace default delete configmap esconfig || true
+# delete network policy
+kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml || true

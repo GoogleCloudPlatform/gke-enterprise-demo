@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env bash
-
 # This is a wrapper for test/boilerplate/boilerplate.py which has the meat of the matching logic
 
-# Wrapper for the meat of the boilerplate code at test/boilerpolate/boilerplate.py
-. "$(dirname "${BASH_SOURCE[@]}")/common.sh"
+set -o errexit
+set -o nounset
+set -o pipefail
+
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 echo "Checking boilerplate"
 # grabs only the array of files that need to be updated

@@ -25,9 +25,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+
 echo "Installing k8s resources"
-ROOT=$(dirname "${BASH_SOURCE[0]}")
 # create on prem k8s resouces
-"$ROOT"/on-prem-create.sh
+"$PROJECT_ROOT"/scripts/on-prem-create.sh
 # create cloud k8s resouces
-"$ROOT"/cloud-create.sh
+"$PROJECT_ROOT"/scripts/cloud-create.sh

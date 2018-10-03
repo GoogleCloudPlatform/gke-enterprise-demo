@@ -21,12 +21,13 @@
 # "-                                                       -"
 # "---------------------------------------------------------"
 
+set -o errexit
 set -o nounset
 set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+
+source "$PROJECT_ROOT"/k8s.env
 
 echo "Creating pyrios deployment on ${CLOUD_GKE_CONTEXT}"
 
@@ -35,12 +36,12 @@ LB_IP=$(kubectl --namespace default --context="${ON_PREM_GKE_CONTEXT}" get svc -
 kubectl config use-context "${CLOUD_GKE_CONTEXT}"
 echo "LB_IP=$LB_IP"
 kubectl --namespace default create configmap esconfig \
---from-literal=ES_SERVER="${LB_IP}"
+		--from-literal=ES_SERVER="${LB_IP}"
 
-kubectl --namespace default apply -f "$ROOT"/pyrios/manifests
-kubectl --namespace default rollout status -f "$ROOT"/pyrios/manifests/deployment.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml
 
-kubectl --namespace default apply -f "$ROOT"/pyrios-ui/manifests
-kubectl --namespace default rollout status -f "$ROOT"/pyrios-ui/manifests/deployment.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/pyrios/manifests
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"/pyrios/manifests/deployment.yaml
 
-kubectl --namespace default apply -f "$ROOT"/policy/cloud-network-policy.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/pyrios-ui/manifests
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"/pyrios-ui/manifests/deployment.yaml

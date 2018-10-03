@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+set -o pipefail
 
-# shellcheck source=test/common.sh
-. "$(dirname "${BASH_SOURCE[@]}")/common.sh"
-
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 # creates a trimmed list of the files that need updates based on the boilerplate.py
 BAD_HEADERS=$( (python "${PROJECT_ROOT}"/test/boilerplate/boilerplate.py || true) | sed -e 1d )
