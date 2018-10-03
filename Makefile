@@ -93,7 +93,7 @@ terraform:
 	terraform init terraform/
 	terraform fmt terraform/
 	terraform validate -check-variables=false terraform/
-	terraform plan -var "project=$(PROJECT)" -out=tfplan
+	terraform plan -var "project=$(PROJECT)" -out=tfplan terraform/
 	terraform apply tfplan
 
 # Step 3: configure the k8s context by generateing a k8s.env, decoupling the
@@ -105,7 +105,7 @@ config:
 # Step 4: create kubernetes objects
 .PHONY: create
 create:
-	$(ROOT)/scripts/screate.sh
+	$(ROOT)/scripts/create.sh
 
 # Step 5: Expose the elasticsearch API endpoint localhost:9200 via the laptop/desktop
 .PHONY: expose

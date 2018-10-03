@@ -39,7 +39,7 @@ spec:
     - cat
     tty: true
     volumeMounts:
-    # Mount the docker.sock file so we can communicate wth the local docker
+    # Mount the docker.sock file so we can communicate with the local docker
     # daemon
     - name: docker-sock-volume
       mountPath: /var/run/docker.sock
@@ -69,31 +69,31 @@ spec:
     }
 
   stages {
-    stage('Setup access') {
-      steps {
-        container('k8s-node') {
-          script {
-                // env.CLUSTER_ZONE will need to be updated to match the
-                // ZONE in the jenkins.propeties file
-                env.CLUSTER_ZONE = "${CLUSTER_ZONE}"
-                // env.PROJECT_ID will need to be updated to match your GCP
-                // development project id
-                env.PROJECT_ID = "${PROJECT_ID}"
-            }
-          // Setup gcloud service account access
-          sh "gcloud auth activate-service-account --key-file=${env.GOOGLE_APPLICATION_CREDENTIALS}"
-          sh "gcloud config set compute/zone ${env.CLUSTER_ZONE}"
-          sh "gcloud config set core/project ${env.PROJECT_ID}"
-         }
+  stage('Linting') {
+    steps {
+      container('k8s-node') {
+          // This will run all of our source code linting
+          sh "make lint"
         }
     }
+  }
 
-    stage('Linting') {
-      steps {
-        container('k8s-node') {
-            // This will run all of our source code linting
-            sh "make lint_code"
+  stage('Setup') {
+    steps {
+      container('k8s-node') {
+        script {
+          env.ZONE = "${ZONE}"
+          env.PROJECT_ID = "${PROJECT_ID}"
+          env.REGION = "${REGION}"
+          env.KEYFILE = GOOGLE_APPLICATION_CREDENTIALS
         }
+        // Setup gcloud service account access
+        sh "gcloud auth activate-service-account --key-file=${env.KEYFILE}"
+        sh "gcloud config set compute/zone ${env.ZONE}"
+        sh "gcloud config set core/project ${env.PROJECT_ID}"
+        sh "gcloud config set compute/region ${env.REGION}"
+
+       }
       }
     }
 
@@ -122,8 +122,6 @@ spec:
     stage('Test') {
       steps {
         container('k8s-node') {
-            // This will create k8s.env which contains context names
-            sh "make config"
             // This will port-forward to the pyrios pod on port 9200
             sh "make expose"
             // This will use the local port 9200 to load data into Elasticsearch
@@ -134,7 +132,6 @@ spec:
         }
       }
     }
-
   }
 
   // We're putting teardown in post so it cleans up even if an error occurs

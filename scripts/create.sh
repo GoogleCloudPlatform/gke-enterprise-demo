@@ -29,6 +29,6 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 echo "Installing k8s resources"
 # create on prem k8s resouces
-"$PROJECT_ROOT"/on-prem-create.sh
+"$PROJECT_ROOT"/scripts/on-prem-create.sh
 # create cloud k8s resouces
-"$PROJECT_ROOT"/cloud-create.sh
+"$PROJECT_ROOT"/scripts/cloud-create.sh
