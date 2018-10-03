@@ -19,8 +19,6 @@ variable "project" {
   type = "string"
 }
 
-variable "shared_secret" {}
-
 // Optional variables
 variable "region_cloud" {
   default = "us-west1"

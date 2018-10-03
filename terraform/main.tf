@@ -41,7 +41,7 @@ module "cloud" {
   vpn_ip            = "${google_compute_address.public_ip_1.address}"
   peer_ip           = "${google_compute_address.public_ip_2.address}"
   destination_range = "${lookup(var.cloud, "destination_range")}"
-  shared_secret     = "${var.shared_secret}"
+  shared_secret     = "${random_string.shared_secret.result}"
 }
 
 // invokes a module to create policy based VPN, custom network/subnet, firewall rules as
@@ -55,7 +55,7 @@ module "on-prem" {
   vpn_ip            = "${google_compute_address.public_ip_2.address}"
   peer_ip           = "${google_compute_address.public_ip_1.address}"
   destination_range = "${lookup(var.on_prem, "destination_range")}"
-  shared_secret     = "${var.shared_secret}"
+  shared_secret     = "${random_string.shared_secret.result}"
 }
 
 // Provides access to available Google Container Engine versions in a zone for a given project.
@@ -187,4 +187,11 @@ resource "google_project_iam_binding" "bigquery-sink-permissions" {
   members = [
     "${google_logging_project_sink.bigquery-sink.writer_identity}",
   ]
+}
+
+resource "random_string" "shared_secret" {
+  length      = 32
+  special     = true
+  min_special = 6
+  min_upper   = 8
 }

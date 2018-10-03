@@ -30,9 +30,9 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 source "$PROJECT_ROOT"/k8s.env
 
-# try to set context to on-prem cluster. if we can't set that context, we can't do anything else 
+# try to set context to on-prem cluster. if we can't set that context, we can't do anything else
 # in this file, so we can exit
-if [[ !$(kubectl config use-context "${ON_PREM_GKE_CONTEXT}") ]]; then
+if [[ ! $(kubectl config use-context "${ON_PREM_GKE_CONTEXT}") ]]; then
 	echo "on-prem cluster was not found; skipping cluster teardown"
 	exit 1
 fi
