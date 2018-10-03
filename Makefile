@@ -13,7 +13,7 @@
 # limitations under the License.
 
 PROJECT:=$(shell gcloud config get-value core/project)
-ROOT:= ${CURDIR}
+ROOT:=$(shell git rev-parse --show-toplevel)
 SHELL:=/usr/bin/env bash
 
 # we're building images based on [distroless](https://github.com/GoogleContainerTools/distroless) are so minimal
@@ -90,26 +90,27 @@ bootstrap:
 # Step 2: terraform is used to automate the terraform workflow
 .PHONY: terraform
 terraform:
-	terraform fmt
-	terraform validate -check-variables=false
-	terraform init
-	terraform apply -var "project=$(PROJECT)" -auto-approve
+	terraform init terraform/
+	terraform fmt terraform/
+	terraform validate -check-variables=false terraform/
+	terraform plan -var "project=$(PROJECT)" -out=tfplan
+	terraform apply tfplan
 
 # Step 3: configure the k8s context by generateing a k8s.env, decoupling the
 # k8s configurations from the scripts
 .PHONY: config
 config:
-	$(ROOT)/configure.sh
+	$(ROOT)/scripts/configure.sh
 
 # Step 4: create kubernetes objects
 .PHONY: create
 create:
-	$(ROOT)/create.sh
+	$(ROOT)/scripts/screate.sh
 
 # Step 5: Expose the elasticsearch API endpoint localhost:9200 via the laptop/desktop
 .PHONY: expose
 expose:
-	$(ROOT)/expose.sh
+	$(ROOT)/scripts/expose.sh
 
 .PHONY: close-expose
 close-expose:
@@ -118,22 +119,22 @@ close-expose:
 # Step 6: load the shakespeare data via the elasticsearch API endpoint
 .PHONY: load
 load:
-	$(ROOT)/load-shakespeare.sh
+	$(ROOT)/scripts/load-shakespeare.sh
 
 # Step 7: Valide the data via the elasticsearch API endpoint
 .PHONY: validate
 validate:
-	$(ROOT)/validate.sh
+	$(ROOT)/scripts/validate.sh
 
 # Step 8: Expose the UI on localhost:8080 via the laptop/desktop
 .PHONY: expose-ui
 expose-ui:
-	$(ROOT)/expose-ui.sh
+	$(ROOT)/scripts/expose-ui.sh
 
 # Step 9: tear down kubernetes and the rest of GCP infrastructure used
 .PHONY: teardown
 teardown:
-	$(ROOT)/teardown.sh
+	$(ROOT)/scripts/teardown.sh
 
 .PHONY: push-pyrios
 push-pyrios:

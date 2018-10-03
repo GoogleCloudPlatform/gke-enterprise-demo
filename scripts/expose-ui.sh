@@ -27,9 +27,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+
+
+source "$PROJECT_ROOT"/k8s.env
 
 echo "kubectl uses ${CLOUD_GKE_CONTEXT}"
 kubectl config use-context "${CLOUD_GKE_CONTEXT}"

@@ -16,8 +16,8 @@
 
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "=" installs ElasticSerach Cluster  on GKE               -"
-# "=" installs pyrios on GKE                              -"
+# "-  Uninstalls all k8s resources and deletes             -"
+# "-  the GKE cluster                                      -"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
@@ -25,9 +25,15 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "Installing k8s resources"
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# create on prem k8s resouces
-"$ROOT"/on-prem-create.sh
-# create cloud k8s resouces
-"$ROOT"/cloud-create.sh
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+
+source "$PROJECT_ROOT"/k8s.env
+
+kubectl config use-context "${CLOUD_GKE_CONTEXT}"
+# delete k8s resources
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests
+# delete config map
+kubectl --namespace default delete configmap esconfig
+# delete network policy
+kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml

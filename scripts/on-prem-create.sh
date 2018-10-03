@@ -20,12 +20,13 @@
 # "-                                                       -"
 # "---------------------------------------------------------"
 
+set -o errexit
 set -o nounset
 set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+
+source "$PROJECT_ROOT"/k8s.env
 
 
 echo "install elasticsearch on ${ON_PREM_GKE_CONTEXT}"
@@ -45,29 +46,29 @@ fi
 
 # roll out the master,client and data manifest in order due to dependencies
 # roll out master nodes related objects
-kubectl --namespace default create -f "$ROOT"/manifests/es-discovery-svc.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/es-svc.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/es-master.yaml
-kubectl --namespace default rollout status -f "$ROOT"/manifests/es-master.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-discovery-svc.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-svc.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-master.yaml
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"/manifests/es-master.yaml
 
 # roll out client nodes related objects, client depends on the master nodes
-kubectl --namespace default create -f "$ROOT"/manifests/es-client.yaml
-kubectl --namespace default rollout status -f "$ROOT"/manifests/es-client.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-client.yaml
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"/manifests/es-client.yaml
 
 # roll out rbac for data nodes
-kubectl --namespace default create -f "$ROOT"/manifests/service-account.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/clusterrole.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/clusterrolebinding.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/service-account.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/clusterrole.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/clusterrolebinding.yaml
 
 # roll out data nodes
-kubectl --namespace default create -f "$ROOT"/manifests/es-data-svc.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/es-data-sc.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/configmap.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/es-data-stateful.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-data-svc.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-data-sc.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/configmap.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-data-stateful.yaml
 kubectl --namespace default rollout status -f manifests/es-data-stateful.yaml
 
 # roll out pdb for master and data nodes
-kubectl --namespace default create -f "$ROOT"/manifests/es-master-pdb.yaml
-kubectl --namespace default create -f "$ROOT"/manifests/es-data-pdb.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-master-pdb.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/manifests/es-data-pdb.yaml
 
-kubectl --namespace default create -f "$ROOT"/policy/on-prem-network-policy.yaml
+kubectl --namespace default create -f "$PROJECT_ROOT"/policy/on-prem-network-policy.yaml

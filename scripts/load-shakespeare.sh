@@ -26,8 +26,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-
-ROOT=$(dirname "${BASH_SOURCE[0]}")
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 # Load sample data from the Elasticesearch Tutorial
 # https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html
@@ -39,7 +38,7 @@ echo "Loading the index into the Elasticsearch cluster"
 curl http://localhost:9200/shakespeare \
   -H "Content-Type: application/json" \
   -X PUT \
-  -d @"$ROOT"/data/mappings.json
+  -d @"$PROJECT_ROOT"/data/mappings.json
 
 echo
 
@@ -47,5 +46,5 @@ echo "Loading the data into the Elasticsearch cluster"
 curl -s 'http://localhost:9200/shakespeare/doc/_bulk?pretty' \
    -H "Content-Type: application/x-ndjson" \
    -X POST \
-   --data-binary @"$ROOT"/data/shakespeare_6.0.json \
+   --data-binary @"$PROJECT_ROOT"/data/shakespeare_6.0.json \
    -o /dev/null

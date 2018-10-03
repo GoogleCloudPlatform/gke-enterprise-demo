@@ -22,31 +22,24 @@
 # "---------------------------------------------------------"
 
 # Do not set errexit as it makes partial deletes impossible
+set -o errexit
 set -o nounset
 set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
 # shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+source "$PROJECT_ROOT"/k8s.env
 
-echo ""
-echo "---------------------------------------------------------"
-echo "-                                                       -"
-echo "-          tear down project infrastructure             -"
-echo "-                                                       -"
-echo "-                                                       -"
-echo "---------------------------------------------------------"
-echo ""
+kubectl config use-context "${ON_PREM_GKE_CONTEXT}"
+# You have to wait the default pod grace period before you can delete the pvcs
+grace=$(kubectl --namespace default get sts -l component=elasticsearch,role=data -o jsonpath='{..terminationGracePeriodSeconds}')
+kubectl --namespace default delete -f "$PROJECT_ROOT"/manifests/
+kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/on-prem-network-policy.yaml
 
-# tear down cloud GKE objects, i.e. pyrios deployment, service and configmap
-"$ROOT"/cloud-destroy.sh
-# tear dwon on prem GKE objects, i.e. the Elasticsearch cluster
-"$ROOT"/on-prem-destroy.sh
-# bq is the 'big query' utility build into the GCP SDK.
-# Here we use it to remove all the log tables from the BQ dataset
-# otherwise Terraform can't delete the dataset
-bq --headless rm -f -r gke_elasticsearch_log_dataset
-# destroy the rest of GCP infrastructure via Terraform
-# such as GKE clusters,
-PROJECT=$(gcloud config get-value core/project)
-terraform destroy -var project="$PROJECT" -auto-approve
+echo "Sleeping ${grace} seconds before deleting PVCs. The default pod grace period."
+sleep "${grace}"
+
+# Deleting and/or scaling a StatefulSet down will not delete the volumes associated with the StatefulSet.
+# This is done to ensure data safety, which is generally more valuable
+# than an automatic purge of all related StatefulSet resources.
+kubectl --namespace default delete pvc -l component=elasticsearch,role=data

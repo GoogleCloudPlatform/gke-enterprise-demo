@@ -24,6 +24,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+
 # gcloud and kubectl are required
 command -v gcloud >/dev/null 2>&1 || { \
  echo >&2 "I require gcloud but it's not installed.  Aborting."; exit 1; }
@@ -43,12 +45,12 @@ do
 done
 
 # delete k8s.env
-if [ -f k8s.env ]; then
-  rm k8s.env
+if [ -f "$PROJECT_ROOT"/k8s.env ]; then
+  rm "$PROJECT_ROOT"/k8s.env
 fi
 
 # write out the k8s.env
-cat > k8s.env <<EOF
+cat > "$PROJECT_ROOT"/k8s.env <<EOF
 #!/bin/bash
 
 # Copyright 2018 Google LLC
