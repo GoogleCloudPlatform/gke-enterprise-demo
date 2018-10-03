@@ -29,11 +29,17 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 source "$PROJECT_ROOT"/k8s.env
 
-kubectl config use-context "${CLOUD_GKE_CONTEXT}"
+# try to set context to cloud cluster. if we can't set that context, we can't do anything else 
+# in this file, so we can exit
+if [[ !$(kubectl config use-context "${CLOUD_GKE_CONTEXT}") ]]; then
+	echo "cloud cluster was not found; skipping cluster teardown"
+	exit 1
+fi
+
 # delete k8s resources
-kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests
-kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests || true
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests || true
 # delete config map
-kubectl --namespace default delete configmap esconfig
+kubectl --namespace default delete configmap esconfig || true
 # delete network policy
-kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml
+kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml || true
