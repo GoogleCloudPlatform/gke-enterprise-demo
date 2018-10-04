@@ -46,29 +46,29 @@ fi
 
 # roll out the master,client and data manifest in order due to dependencies
 # roll out master nodes related objects
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-discovery-svc.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-svc.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-discovery-svc.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-svc.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master.yaml
 kubectl --namespace default rollout status -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master.yaml
 
 # roll out client nodes related objects, client depends on the master nodes
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-client.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-client.yaml
 kubectl --namespace default rollout status -f "$PROJECT_ROOT"/elasticsearch/manifests/es-client.yaml
 
 # roll out rbac for data nodes
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/service-account.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/clusterrole.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/clusterrolebinding.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/service-account.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/clusterrole.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/clusterrolebinding.yaml
 
 # roll out data nodes
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-svc.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-sc.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/configmap.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-stateful.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-svc.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-sc.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/configmap.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-stateful.yaml
 kubectl --namespace default rollout status -f elasticsearch/manifests/es-data-stateful.yaml
 
 # roll out pdb for master and data nodes
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master-pdb.yaml
-kubectl --namespace default create -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-pdb.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master-pdb.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-pdb.yaml
 
-kubectl --namespace default create -f "$PROJECT_ROOT"/policy/on-prem-network-policy.yaml
+kubectl --namespace default apply -f "$PROJECT_ROOT"/policy/on-prem-network-policy.yaml
