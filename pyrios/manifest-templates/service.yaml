@@ -12,4 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
+# Service for pyrios, this is designed for in cluster application to access
+# on prem ElasticSearch cluster
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyrios
+  labels:
+    app: pyrios
+spec:
+  selector:
+    app: pyrios
+  ports:
+    - port: 9200
+      targetPort: 9200
+      protocol: TCP
+      name: http
+  type: ClusterIP

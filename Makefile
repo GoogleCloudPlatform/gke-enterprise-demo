@@ -173,19 +173,13 @@ bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
 bazel-build-pyrios-image:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_REPO} \
-		--define TAG=${PYRIOS_TAG} \
-		//pyrios:go_image
+		//pyrios:app
 
 .PHONY: bazel-build-pyrios-ui-image
 bazel-build-pyrios-ui-image:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_UI_REPO} \
-		--define TAG=${PYRIOS_UI_TAG} \
-		//pyrios-ui:go_image
+		//pyrios-ui:app
 
 .PHONY: bazel-build-images
 bazel-build-images: bazel-build-pyrios-image bazel-build-pyrios-ui-image
@@ -194,22 +188,46 @@ bazel-build-images: bazel-build-pyrios-image bazel-build-pyrios-ui-image
 bazel-push-pyrios:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_REPO} \
-		--define TAG=${PYRIOS_TAG} \
-		//pyrios:push
+		//pyrios:staging
 
 .PHONY: bazel-push-pyrios-ui
 bazel-push-pyrios-ui:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-        --define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_UI_REPO} \
-		--define TAG=${PYRIOS_UI_TAG} \
-		//pyrios-ui:push
+		//pyrios-ui:staging
 
 .PHONY: bazel-push-images
 bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
+
+.PHONY: bazel-deploy-pyrios
+bazel-deploy-pyrios:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		//pyrios:staging.apply
+
+.PHONY: bazel-deploy-pyrios-ui
+bazel-deploy-pyrios-ui:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		//pyrios-ui:staging.apply
+
+.PHONY: bazel-deploy-pyrios-all
+bazel-deploy-pyrios-all:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		//pyrios:staging.apply //pyrios-ui:staging.apply
+
+.PHONY: bazel-delete-pyrios
+bazel-delete-pyrios:
+	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete
+
+.PHONY: bazel-delete-pyrios-ui
+bazel-delete-pyrios-ui:
+	bazel run ${BAZEL_OPTIONS} //pyrios-ui:staging.delete
+
+.PHONY: bazel-delete-pyrios-all
+bazel-delete-pyrios-all:
+	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete 	//pyrios-ui:staging.delete
 
 ################################################################################################
 #                                 kubernetes helpers                                           #

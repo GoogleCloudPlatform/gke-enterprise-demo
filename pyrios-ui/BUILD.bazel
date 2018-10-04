@@ -12,21 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+package(default_visibility = ["//visibility:public"])
+
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
-load("@io_bazel_rules_docker//container:container.bzl", "container_push", "container_image")
 
-go_binary(
-    name = "pyrios-ui",
-    embed = [":go_default_library"],
-    visibility = ["//visibility:public"],
-)
-
-go_library(
-    name = "go_default_library",
+go_image(
+    name = "app",
     srcs = ["main.go"],
-    importpath = "github.com/GoogleCloudPlatform/gke-enterprise-demo/pyrios-ui",
-    visibility = ["//visibility:private"],
+    importpath = "github.com/GoogleCloudPlatform/gke-enterprise-demo/pyrios",
     deps = [
         "@com_github_tidwall_gjson//:go_default_library",
         "@com_google_cloud_go//compute/metadata:go_default_library",
@@ -37,32 +30,17 @@ go_library(
         "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
         "@io_opencensus_go//trace:go_default_library",
         "@io_opencensus_go_contrib_exporter_stackdriver//:go_default_library",
-    ],
-)
-
-go_image(
-    name = "go_image_base",
-    embed = [":go_default_library"],
-    goarch = "amd64",
-    goos = "linux",
+        ],
     pure = "on",
 )
 
-container_image(
-    name = "go_image",
-    base = ":go_image_base",
-    ports = ["9200"],
-    files = ["static"],
-    directory = "/app",
-    workdir = "/app",
-    stamp = True,
+load("@k8s_deploy//:defaults.bzl", "k8s_deploy")
+
+k8s_deploy(
+    name = "staging",
+    images = {
+        "us.gcr.io/pso-helmsman-cicd-infra/pyrios-ui:staging": ":app",
+    },
+    template = "//pyrios-ui/manifest-templates:deployment.yaml",
 )
 
-container_push(
-    name = "push",
-    format = "Docker",
-    image = ":go_image",
-    registry = "$(REGISTRY)",
-    repository = "$(REPOSITORY)",
-    tag = "$(TAG)",
-)

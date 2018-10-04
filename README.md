@@ -28,10 +28,11 @@ the process of administering a k8s cluster extremely simple and allows teams to 
 what matters instead of pain points like upgrading etcd.
 
 This demo aims to show what a fully-featured project running in Kubernetes Engine
-looks like. It includes Elasticsearch, a very popular open-source project for indexing and searching data,
-as well as some custom software to interface with it. You can learn and get experience with a number of topics in
-this demo:
+looks like. It includes Elasticsearch, a very popular open-source project for indexing and searching data. Also
+included are 2 demonstration applications that are used to show some advanced features in GCP and a fully operational
+Bazel pipeline and workflow.
 
+Some of the highlights included are:
 * Rolling upgrades
 * k8s services
 * Using Cloud VPN to connect disparate networks
