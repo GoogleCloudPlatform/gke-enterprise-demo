@@ -18,13 +18,13 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PROJECT_ROOT=..
 
 # creates a trimmed list of the files that need updates based on the boilerplate.py
-BAD_HEADERS=$( (python "${PROJECT_ROOT}"/test/boilerplate/boilerplate.py || true) | sed -e 1d )
+BAD_HEADERS=$( ( python test/verify_boilerplate.py || true ) | sed -e 1d )
 
 # we're only going to auto-update certain filetypes. include any filetype that you need to update in this list
-FORMATS="sh go Makefile Dockerfile py tf yaml yml"
+FORMATS="sh go Makefile Dockerfile py tf yaml yml bazel"
 
 YEAR=$(date +%Y)
 

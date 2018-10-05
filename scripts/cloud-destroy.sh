@@ -23,9 +23,9 @@
 
 set -o errexit
 set -o nounset
-set -o pipefail
+# set -o pipefail
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PROJECT_ROOT=..
 
 source "$PROJECT_ROOT"/k8s.env
 
@@ -37,9 +37,9 @@ if [[ ! $(kubectl config use-context "${CLOUD_GKE_CONTEXT}") ]]; then
 fi
 
 # delete k8s resources
-kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests || true
-kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests || true
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests
 # delete config map
-kubectl --namespace default delete configmap esconfig || true
+kubectl --namespace default delete configmap esconfig
 # delete network policy
-kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml || true
+kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml

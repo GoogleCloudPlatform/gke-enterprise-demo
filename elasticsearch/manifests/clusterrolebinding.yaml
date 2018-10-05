@@ -30,5 +30,5 @@ roleRef:
   name: elasticsearch-data
 subjects:
 - kind: ServiceAccount
-  name: elasticsearch-data
-  namespace: default
+    name: elasticsearch-data
+    namespace: default

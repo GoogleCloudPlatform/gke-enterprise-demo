@@ -25,7 +25,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PROJECT_ROOT=..
 
 echo "Installing k8s resources"
 # create on prem k8s resouces

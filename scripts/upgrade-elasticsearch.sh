@@ -23,7 +23,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PROJECT_ROOT=..
 
 fail() {
   echo "ERROR: ${*}"
@@ -50,6 +50,7 @@ fi
 command -v kubectl >/dev/null || fail "kubectl is not installed!"
 command -v jq >/dev/null || fail "jq is not installed!"
 
+# shellcheck source=./k8s.env
 source "$PROJECT_ROOT"/k8s.env
 
 # disable_shard_allocation() - Sets the cluster.routing.allocation.enable

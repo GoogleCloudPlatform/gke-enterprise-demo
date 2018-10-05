@@ -26,7 +26,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PROJECT_ROOT=..
 
 # Load sample data from the Elasticesearch Tutorial
 # https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html

@@ -1,6 +1,5 @@
 # Kubernetes Engine Enterprise Best Practices
 
-
 * [Introduction](#introduction)
 * [Architecture](#architecture)
   * [RBAC Setup](#rbac-setup)

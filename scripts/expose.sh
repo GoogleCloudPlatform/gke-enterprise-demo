@@ -27,7 +27,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PROJECT_ROOT=..
 source "$PROJECT_ROOT"/k8s.env
 
 echo "kubectl uses ${CLOUD_GKE_CONTEXT}"

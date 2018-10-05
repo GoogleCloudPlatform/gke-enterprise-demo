@@ -45,21 +45,20 @@ function basefiles() {
 
 # This function runs the hadolint linter on
 # every file named 'Dockerfile'
-# using git ls-files because we're essentially linting for version control
 function docker() {
   echo "Linting Dockerfiles"
-  if ! [ "$(git ls-files | grep "Dockerfile" | xargs hadolint)" ]; then
-    echo " > Dockerfiles conform to spec"
+  if ! [[ "$( find . -name "Dockerfile" -exec hadolint {} \; )" ]]; then
+    echo "dockerfiles conform to spec"
     echo ""
   fi
 }
 
-# This function runs 'terraform validate' against all
+# This function --include=runs 'terraform validate' against all
 # files ending in '.tf'
 function check_terraform() {
   echo "Running terraform validate"
   #shellcheck disable=SC2156
-  if ! [ "$(find . -name "*.tf" -exec bash -c 'terraform validate --check-variables=false $(dirname "{}")' \;)"  ]; then
+  if ! [[ "$(find . -name "*.tf" -exec bash -c 'terraform validate --check-variables=false $(dirname "{}")' \;)" ]]; then
     echo " > terraform code conforms to spec"
     echo ""
   fi
@@ -69,7 +68,7 @@ function check_terraform() {
 # ending in '.py'
 function check_python() {
   echo "Running flake8"
-  if ! [ "$(find . -name "*.py" -exec flake8 {} \;)" ]; then
+  if [[ "$( find . -not -path "bazel-*" -name "*.py" -exec flake8 {} \; )" ]]; then
     echo " > python code conforms to spec"
     echo ""
   fi
@@ -79,11 +78,11 @@ function check_python() {
 # file ending in '.sh'
 function check_shell() {
   echo "Running shellcheck"
-  if ! [ "$(git ls-files --exclude="*.sh" -i | xargs shellcheck -e SC1128 -e SC1090 -x)" ]; then
+  if ! [[ "$( grep -rli --exclude-dir=.git --exclude-dir=.terraform --exclude-dir=bazel-*  --exclude-dir=.idea "/*.sh$/" . | xargs shellcheck -x )" ]]; then
     echo " > Shell files conform to spec"
     echo ""
   else
-    git ls-files --exclude="*.sh" -i | xargs shellcheck -e SC1128 -e SC1090 -x
+    grep -rli --exclude-dir=.git --exclude-dir=.terraform --exclude-dir=bazel-*  --exclude-dir=.idea "/*.sh$/" . | xargs shellcheck -x
   fi
 }
 
@@ -93,9 +92,10 @@ function check_shell() {
 function check_trailing_whitespace() {
   echo "Checking trailing whitespace"
   # get a list of our files in git and print out what needs to change (with line numbers)
-  if [[ $(git ls-files | grep -v ".png" | xargs grep -nr '[[:blank:]]$' | wc -l) -gt 0 ]]; then
+
+  if [[ "$( grep -Inr '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" . | wc -l )" -gt 0  ]]; then
     echo "Files with extra whitespace detected"
-    git ls-files | grep -v ".png" | xargs grep -nr '[[:blank:]]$'
+    grep -Inr '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" .
     exit 1
   else
     echo " > Trailing whitespace conforms to spec"
