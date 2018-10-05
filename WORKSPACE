@@ -35,38 +35,47 @@ git_repository(
 )
 
 load("@io_bazel_rules_k8s//k8s:k8s.bzl", "k8s_repositories", "k8s_defaults")
+load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
+
 
 k8s_repositories()
 
-_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_cloud-cluster"
-_CONTEXT = _CLUSTER
-_NAMESPACE = "{BUILD_USER}"
+# if you define these vars, you can access them in the k8s_defaults area below
+# CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_cloud-cluster"
+# CONTEXT = "gke_pso-helmsman-cicd-infra_us-west1-b_cloud-cluster"
+# IMAGE_REPO = "gcr.io/pso-helmsman-shared-demo-dev/{BUILD_USER}"
 
+
+# todo: I don't know how to get these to resolve the output of the scripts. since 
+# this is an immutable system, it's hard to get envvars in. 
 k8s_defaults(
     name = "k8s_object",
-    cluster = _CLUSTER,
-    context = _CONTEXT,
-    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
-    # namespace = _NAMESPACE,
+    cluster = "//scripts:deploy_cluster",
+    context = "//scripts:deploy_cluster",
+    image_chroot = "//scripts:deploy_repo" + "{BUILD_USER}",
+    namespace = "{BUILD_USER}",
 )
 
 k8s_defaults(
     name = "k8s_deploy",
-    cluster = _CLUSTER,
-    context = _CONTEXT,
-    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
+    cluster = "//scripts:deploy_cluster",
+    context = "//scripts:deploy_cluster",
+    image_chroot = "//scripts:deploy_repo" + "{BUILD_USER}",
+    namespace = "{BUILD_USER}",
     kind = "deployment",
-    # namespace = _NAMESPACE,
 )
 
-k8s_defaults(
-    name = "k8s_service",
-    cluster = _CLUSTER,
-    context = _CONTEXT,
-    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
-    kind = "deployment",
-    # namespace = _NAMESPACE,
-)
+[k8s_defaults(
+    name = "k8s_" + kind,
+    cluster = "//scripts:deploy_cluster",
+    context = "//scripts:deploy_cluster",
+    namespace = "{BUILD_USER}",
+    kind = kind,
+) for kind in [
+    "service",
+    "configmap",
+    # add additional types of k8s objects in this array (including crds!) to manage them
+]]
 
 # Standard bazel golang support
 http_archive(

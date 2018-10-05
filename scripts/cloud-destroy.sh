@@ -22,10 +22,9 @@
 # "---------------------------------------------------------"
 
 set -o errexit
-set -o nounset
-# set -o pipefail
 
-PROJECT_ROOT=..
+
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
 
 source "$PROJECT_ROOT"/k8s.env
 
@@ -37,9 +36,11 @@ if [[ ! $(kubectl config use-context "${CLOUD_GKE_CONTEXT}") ]]; then
 fi
 
 # delete k8s resources
-kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests
-kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests
+# todo: check for bazel and if doesn't exist, echo logs that say we're going to use kubectl with the static manifests
+# todo: use bazel
+kubectl --namespace default delete -f pyrios/manifests
+kubectl --namespace default delete -f pyrios-ui/manifests
 # delete config map
 kubectl --namespace default delete configmap esconfig
 # delete network policy
-kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml
+kubectl --namespace default delete -f policy/cloud-network-policy.yaml

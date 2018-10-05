@@ -41,6 +41,31 @@ k8s_deploy(
     images = {
         "us.gcr.io/pso-helmsman-cicd-infra/pyrios-ui:staging": ":app_image",
     },
-    template = "//pyrios-ui/manifest-templates:deployment.yaml",
+    template = "//pyrios-ui/manifest-templates/staging:deployment.yaml",
 )
 
+
+## developer resources
+
+k8s_deploy(
+    name = "dev-deployment",
+    images = {
+        "us.gcr.io/pso-helmsman-cicd-infra/pyrios-ui:staging": ":app_image",
+    },
+    template = "//pyrios-ui/manifest-templates/dev:deployment.yaml",
+)
+
+k8s_service(
+    name = "dev-service",
+    template = "//pyrios-ui/manifest-templates/dev:service.yaml",
+)
+
+load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
+
+k8s_objects(
+    name = "dev",
+    objects = [
+        ":dev-deployment",
+        ":dev",
+        ]
+    )

@@ -25,22 +25,32 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=..
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
 
-source "$PROJECT_ROOT"/k8s.env
+source "$PROJECT_ROOT"k8s.env
 
-echo "Creating pyrios deployment on ${CLOUD_GKE_CONTEXT}"
+# applying network policy to cloud cluster to help keep traffic going where it should 
+kubectl --namespace default apply -f "$PROJECT_ROOT"policy/cloud-network-policy.yaml
 
+echo "configuring cloud cluster to communicate with on-prem ES"
 # get elasticsearch service's internal load balancer IP
+
 LB_IP=$(kubectl --namespace default --context="${ON_PREM_GKE_CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
 kubectl config use-context "${CLOUD_GKE_CONTEXT}"
 echo "LB_IP=$LB_IP"
 
 # todo: make a manifest for this command and apply -f it so can be updated
+# todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
 kubectl --namespace default create configmap esconfig \
 		--from-literal=ES_SERVER="${LB_IP}" || true
 
-kubectl --namespace default apply -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml
-
-bazel run //pyrios:staging.apply
-bazel run //pyrios-ui:staging.apply
+if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then 
+	echo >&2 "pyrios is currently built and managed via bazel which is not installed."
+    echo >&2 "in the future, we will try to provide fall back options using kubectl (boring!)"
+    echo "we are not deploying pyrios right now. get your bazel on first!"
+    exit 1
+else
+    echo "building and deploying pyrios and pyrios-ui"
+	bazel run //pyrios:staging.apply
+	bazel run //pyrios-ui:staging.apply
+fi

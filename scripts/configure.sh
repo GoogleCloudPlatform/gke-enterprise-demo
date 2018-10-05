@@ -24,7 +24,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=..
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
 
 # gcloud and kubectl are required
 command -v gcloud >/dev/null 2>&1 || { \
@@ -45,12 +45,12 @@ do
 done
 
 # delete k8s.env
-if [ -f "$PROJECT_ROOT"/k8s.env ]; then
-  rm -f "$PROJECT_ROOT"/k8s.env
+if [ -f "$PROJECT_ROOT"k8s.env ]; then
+  rm -f "$PROJECT_ROOT"k8s.env
 fi
 
 # write out the k8s.env
-cat > "$PROJECT_ROOT"/k8s.env <<EOF
+cat > "$PROJECT_ROOT"k8s.env <<EOF
 #!/bin/bash
 
 # Copyright 2018 Google LLC

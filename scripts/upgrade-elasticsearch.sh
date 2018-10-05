@@ -23,7 +23,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=..
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 
 fail() {
   echo "ERROR: ${*}"
@@ -51,7 +51,7 @@ command -v kubectl >/dev/null || fail "kubectl is not installed!"
 command -v jq >/dev/null || fail "jq is not installed!"
 
 # shellcheck source=./k8s.env
-source "$PROJECT_ROOT"/k8s.env
+source "$PROJECT_ROOT"k8s.env
 
 # disable_shard_allocation() - Sets the cluster.routing.allocation.enable
 # setting to "none".  Prevents shards from being migrated from an upgrading

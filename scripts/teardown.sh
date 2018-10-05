@@ -23,11 +23,12 @@
 
 # Do not set errexit as it makes partial deletes impossible
 set -o errexit
-set -o nounset
+# set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=..
-source "$PROJECT_ROOT"/k8s.env
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
+# w
+source "$PROJECT_ROOT"k8s.env
 
 echo ""
 echo "---------------------------------------------------------"
@@ -41,13 +42,17 @@ echo ""
 PROJECT=$(gcloud config get-value core/project)
 
 # tear down cloud GKE objects, i.e. pyrios deployment, service and configmap
-"$PROJECT_ROOT"/scripts/cloud-destroy.sh || true
+"$PROJECT_ROOT"scripts/cloud-destroy.sh || true
 # tear dwon on prem GKE objects, i.e. the Elasticsearch cluster
-"$PROJECT_ROOT"/scripts/on-prem-destroy.sh || true
+"$PROJECT_ROOT"scripts/on-prem-destroy.sh || true
 # bq is the 'big query' utility build into the GCP SDK.
 # Here we use it to remove all the log tables from the BQ dataset
 # otherwise Terraform can't delete the dataset
-bq --headless rm -f -r gke_elasticsearch_log_dataset
+
+# todo: this seems to get hung up if the log sink export isn't deleted yet.
+# we need to be able to robustly delete all resources
+
+bq --headless rm -r gke_elasticsearch_log_dataset || true
 # destroy the rest of GCP infrastructure via Terraform
 # such as GKE clusters,
 

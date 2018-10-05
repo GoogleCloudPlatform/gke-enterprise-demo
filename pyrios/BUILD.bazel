@@ -28,13 +28,48 @@ go_image(
     pure = "on",
 )
 
-load("@k8s_deploy//:defaults.bzl", "k8s_deploy")
-load("@k8s_service//:defaults.bzl", "k8s_service")
+load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
+load("@k8s_service//:defaults.bzl", "k8s_service",)
+load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
 
+
+
+k8s_defaults(
+    name = "k8s_object",
+    cluster = "//scripts:deploy_cluster",
+    context = "//scripts:deploy_cluster",
+    image_chroot = "//scripts:deploy_repo" + "{BUILD_USER}",
+    namespace = "{BUILD_USER}",
+)
+
+k8s_defaults(
+    name = "k8s_deploy",
+    cluster = "//scripts:deploy_cluster",
+    context = "//scripts:deploy_cluster",
+    image_chroot = "//scripts:deploy_repo" + "{BUILD_USER}",
+    namespace = "{BUILD_USER}",
+    kind = "deployment",
+)
+
+[k8s_defaults(
+    name = "k8s_" + kind,
+    cluster = "//scripts:deploy_cluster",
+    context = "//scripts:deploy_cluster",
+    namespace = "{BUILD_USER}",
+    kind = kind,
+) for kind in [
+    "service",
+    "configmap",
+    # add additional types of k8s objects in this array (including crds!) to manage them
+]]
+
+
+
+## Staging resources
 k8s_deploy(
     name = "staging-deployment",
     images = {
-        "us.gcr.io/pso-helmsman-cicd-infra/pyrios:staging": ":app_image",
+        "pyrios:staging": ":app_image",
     },
     template = "//pyrios/manifest-templates:deployment.yaml",
 )
@@ -53,3 +88,59 @@ k8s_objects(
         ":staging-service",
     ],
 )
+
+load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
+load("@k8s_service//:defaults.bzl", "k8s_service",)
+
+## Staging resources
+k8s_deploy(
+    name = "dev-deployment",
+    images = {
+        "us.gcr.io/pso-helmsman-cicd-infra/pyrios": ":app_image",
+    },
+    template = "//pyrios/manifest-templates:deployment.yaml",
+)
+
+k8s_service(
+    name = "dev-service",
+    template = "//pyrios/manifest-templates:service.yaml",
+)
+
+load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
+
+k8s_objects(
+    name = "dev",
+    objects = [
+        ":dev-deployment",
+        ":dev-service",
+    ],
+)
+
+
+# ## developer resources
+# load("@k8s_deploy//:defaults.bzl", "k8s_dev_deploy",)
+# load("@k8s_service//:defaults.bzl", "k8s_dev_service", )
+# k8s_deploy(
+#     name = "dev-deployment",
+#     images = {
+#         "us.gcr.io/pso-helmsman-cicd-infra/pyrios:dev": ":app_image",
+#     },
+#     template = "//pyrios/manifest-templates/dev:deployment.yaml",
+# )
+
+# k8s_service(
+#     name = "dev-service",
+#     template = "//pyrios/manifest-templates/dev:service.yaml",
+# )
+
+# load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
+
+# k8s_objects(
+#     name = "dev",
+#     objects = [
+#         ":dev-deployment",
+#         ":dev-service",
+#     ],
+# )
+
+

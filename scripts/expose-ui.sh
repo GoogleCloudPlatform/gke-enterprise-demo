@@ -27,10 +27,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=..
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
 
-
-source "$PROJECT_ROOT"/k8s.env
+source "$PROJECT_ROOT"k8s.env
 
 echo "kubectl uses ${CLOUD_GKE_CONTEXT}"
 kubectl config use-context "${CLOUD_GKE_CONTEXT}"

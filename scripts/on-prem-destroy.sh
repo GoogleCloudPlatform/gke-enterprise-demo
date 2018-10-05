@@ -23,12 +23,10 @@
 
 # Do not set errexit as it makes partial deletes impossible
 set -o errexit
-set -o nounset
-set -o pipefail
 
-PROJECT_ROOT=..
+PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
 
-source "$PROJECT_ROOT"/k8s.env
+source "$PROJECT_ROOT"k8s.env
 
 # try to set context to on-prem cluster. if we can't set that context, we can't do anything else
 # in this file, so we can exit
@@ -39,8 +37,8 @@ fi
 
 # You have to wait the default pod grace period before you can delete the pvcs
 grace=$(kubectl --namespace default get sts -l component=elasticsearch,role=data -o jsonpath='{..terminationGracePeriodSeconds}')
-kubectl --namespace default delete -f "$PROJECT_ROOT"/elasticsearch/manifests/ || true
-kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/on-prem-network-policy.yaml || true
+kubectl --namespace default delete -f "$PROJECT_ROOT"elasticsearch/manifests/ || true
+kubectl --namespace default delete -f "$PROJECT_ROOT"policy/on-prem-network-policy.yaml || true
 
 echo "Sleeping ${grace} seconds before deleting PVCs. The default pod grace period."
 sleep "${grace}"
