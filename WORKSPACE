@@ -11,7 +11,62 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "35c585261362a96b1fe777a7c4c41252b22fd404f24483e1c48b15d7eb2b55a5",
+    strip_prefix = "rules_docker-4282829a554058401f7ff63004c8870c8d35e29c",
+    urls = ["https://github.com/bazelbuild/rules_docker/archive/4282829a554058401f7ff63004c8870c8d35e29c.tar.gz"],
+)
+
+load(
+    "@io_bazel_rules_docker//docker:docker.bzl",
+    "docker_repositories",
+)
+
+docker_repositories()
+
+git_repository(
+    name = "io_bazel_rules_k8s",
+    commit = "62ae7911ef60f91ed32fdd48a6b837287a626a80",
+    remote = "https://github.com/bazelbuild/rules_k8s.git",
+)
+
+load("@io_bazel_rules_k8s//k8s:k8s.bzl", "k8s_repositories", "k8s_defaults")
+
+k8s_repositories()
+
+_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_cloud-cluster"
+_CONTEXT = _CLUSTER
+_NAMESPACE = "{BUILD_USER}"
+
+k8s_defaults(
+    name = "k8s_object",
+    cluster = _CLUSTER,
+    context = _CONTEXT,
+    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
+    # namespace = _NAMESPACE,
+)
+
+k8s_defaults(
+    name = "k8s_deploy",
+    cluster = _CLUSTER,
+    context = _CONTEXT,
+    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
+    kind = "deployment",
+    # namespace = _NAMESPACE,
+)
+
+k8s_defaults(
+    name = "k8s_service",
+    cluster = _CLUSTER,
+    context = _CONTEXT,
+    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
+    kind = "deployment",
+    # namespace = _NAMESPACE,
+)
 
 # Standard bazel golang support
 http_archive(
@@ -31,13 +86,9 @@ http_archive(
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
-
 gazelle_dependencies()
 
-
 # bazel rules for docker
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
 http_archive(
     name = "io_bazel_rules_docker",
     sha256 = "29d109605e0d6f9c892584f07275b8c9260803bf0c6fcb7de2623b2bedc910bd",
@@ -60,7 +111,6 @@ load(
 )
 
 _go_image_repos()
-
 
 # external dependencies
 go_repository(
@@ -121,4 +171,16 @@ go_repository(
     name = "org_golang_x_sync",
     importpath = "golang.org/x/sync",
     commit = "1d60e4601c6fd243af51cc01ddf169918a5407ca",
+)
+
+go_repository(
+    name = "org_golang_x_sys_unix",
+    importpath = "golang.org/x/sys/unix",
+    commit = "af653ce8b74f808d092db8ca9741fbb63d2a469d",
+    )
+
+go_repository(
+    name = "org_golang_google_grpc",
+    importpath = "google.golang.org/grpc",
+    tag = "v1.15.1",
 )

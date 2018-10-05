@@ -14,27 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# In order to not expose this project to the internet with a Cloud Load Balancer
-# we are instead port-forwarding to the node and exposing the pod port
-
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "- port-forward to pyrios-ui pod of the cloud GKE cluster-"
+# "-  Uninstalls all k8s resources and deletes             -"
+# "-  the GKE cluster                                      -"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
 set -o errexit
 set -o nounset
-set -o pipefail
+# set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+PROJECT_ROOT=..
 
-echo "kubectl uses ${CLOUD_GKE_CONTEXT}"
-kubectl config use-context "${CLOUD_GKE_CONTEXT}"
-# look up the pyrios-ui pod id by the label app=pyrios-ui
-POD_ID=$(kubectl get pods -l app=pyrios-ui -o jsonpath='{.items[*].metadata.name}')
-# set up port forwarding from the laptop/desktop to the pyrios-ui pod
-# so that we can talk to pyrios
-kubectl port-forward "${POD_ID}" 8080:8080
+source "$PROJECT_ROOT"/k8s.env
+
+# try to set context to cloud cluster. if we can't set that context, we can't do anything else
+# in this file, so we can exit
+if [[ ! $(kubectl config use-context "${CLOUD_GKE_CONTEXT}") ]]; then
+	echo "cloud cluster was not found; skipping cluster teardown"
+	exit 1
+fi
+
+# delete k8s resources
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios/manifests
+kubectl --namespace default delete -f "$PROJECT_ROOT"/pyrios-ui/manifests
+# delete config map
+kubectl --namespace default delete configmap esconfig
+# delete network policy
+kubectl --namespace default delete -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml

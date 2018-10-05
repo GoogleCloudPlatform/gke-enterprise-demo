@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+set -o pipefail
 
-# shellcheck source=test/common.sh
-. "$(dirname "${BASH_SOURCE[@]}")/common.sh"
-
+PROJECT_ROOT=..
 
 # creates a trimmed list of the files that need updates based on the boilerplate.py
-BAD_HEADERS=$( (python "${PROJECT_ROOT}"/test/boilerplate/boilerplate.py || true) | sed -e 1d )
+BAD_HEADERS=$( ( python test/verify_boilerplate.py || true ) | sed -e 1d )
 
 # we're only going to auto-update certain filetypes. include any filetype that you need to update in this list
-FORMATS="sh go Makefile Dockerfile py tf yaml yml"
+FORMATS="sh go Makefile Dockerfile py tf yaml yml bazel"
 
 YEAR=$(date +%Y)
 

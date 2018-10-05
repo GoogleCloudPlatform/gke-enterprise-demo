@@ -1,20 +1,7 @@
-# Copyright 2018 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# shellcheck disable=SC2148
 
 PROJECT:=$(shell gcloud config get-value core/project)
-ROOT:= ${CURDIR}
-SHELL:=/usr/bin/env bash
+ROOT:=.
 
 # we're building images based on [distroless](https://github.com/GoogleContainerTools/distroless) are so minimal
 # that they don't have a shell to exec into which makes it difficult to do traditional k8s debugging
@@ -24,12 +11,9 @@ DEBUG?=-c dbg
 # add any bazel build options here
 BAZEL_OPTIONS?=
 
-IMAGE_REGISTRY?=gcr.io
-PYRIOS_REPO?=pso-examples/pyrios
-PYRIOS_UI_REPO?=pso-examples/pyrios-ui
-
-PYRIOS_TAG?=latest
-PYRIOS_UI_TAG?=latest
+################################################################################################
+#                      Verification/testing helpers                                            #
+################################################################################################
 
 # All is the first target in the file so it will get picked up when you just run 'make' on its own
 .PHONY: lint
@@ -49,6 +33,11 @@ check_python:
 .PHONY: check_gofmt
 check_gofmt:
 	@test/verify-gofmt.sh
+
+.PHONY: gofmt
+gofmt:
+	gofmt -s -w pyrios-ui/
+	gofmt -s -w pyrios/
 
 .PHONY: check_terraform
 check_terraform:
@@ -72,10 +61,14 @@ check_trailing_whitespace:
 
 .PHONY: check_headers
 check_headers:
-	@source test/make.sh && test/verify-boilerplate.sh
+	python test/verify_boilerplate.py
 
-# Step 1: bootstrap is used to make sure all the GCP service below are enabled
-# prior to the terraform step
+
+################################################################################################
+#             Infrastructure bootstrapping and mgmt helpers                                    #
+################################################################################################
+
+# 1: Sets up some of the prerequisite APIs that will be needed to interact with GCP in this demo
 .PHONY: bootstrap
 bootstrap:
 	gcloud services enable \
@@ -87,65 +80,64 @@ bootstrap:
 	  logging.googleapis.com \
 	  bigquery-json.googleapis.com
 
-# Step 2: terraform is used to automate the terraform workflow
+# 2: Terraform is used to manage the larger infrastructure components
 .PHONY: terraform
 terraform:
-	terraform fmt
-	terraform validate -check-variables=false
-	terraform init
-	terraform apply -var "project=$(PROJECT)" -auto-approve
+	terraform init terraform/
+	terraform validate -check-variables=false terraform/
+	terraform plan -var "project=$(PROJECT)" -out=tfplan terraform/
+	terraform apply tfplan
 
-# Step 3: configure the k8s context by generateing a k8s.env, decoupling the
-# k8s configurations from the scripts
+# 3. We will not be checking secrets into version control. This helps manage that process
 .PHONY: config
 config:
-	$(ROOT)/configure.sh
+	$(ROOT)/scripts/configure.sh
 
-# Step 4: create kubernetes objects
+# 4: Deploys kubernetes resources. ie: elasticsearch, pyrios and pyrios-ui
+# todo: migrate this to bazel. (pyrios and ui)
 .PHONY: create
 create:
-	$(ROOT)/create.sh
+	$(ROOT)/scripts/create.sh
 
-# Step 5: Expose the elasticsearch API endpoint localhost:9200 via the laptop/desktop
+
+# 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
 .PHONY: expose
 expose:
-	$(ROOT)/expose.sh
+	$(ROOT)/scripts/expose.sh
 
+# 6: Seeds the demo data via the proxy exposed in 5
+.PHONY: load
+load:
+	$(ROOT)/scripts/load-shakespeare.sh
+
+# 7: Validate that the data was properly seeded into ES
+.PHONY: validate
+validate:
+	$(ROOT)/scripts/validate.sh
+
+# 7: Disconnect proxy. You'll have to run this in a separate window/terminal. Alternatively, press control-C
 .PHONY: close-expose
 close-expose:
 	killall kubectl
 
-# Step 6: load the shakespeare data via the elasticsearch API endpoint
-.PHONY: load
-load:
-	$(ROOT)/load-shakespeare.sh
-
-# Step 7: Valide the data via the elasticsearch API endpoint
-.PHONY: validate
-validate:
-	$(ROOT)/validate.sh
-
-# Step 8: Expose the UI on localhost:8080 via the laptop/desktop
+# 8: Expose the pyrios UI so that you can navigate to the site on localhost:8080
 .PHONY: expose-ui
 expose-ui:
-	$(ROOT)/expose-ui.sh
+	$(ROOT)/scripts/expose-ui.sh
 
-# Step 9: tear down kubernetes and the rest of GCP infrastructure used
+# The elasticsearch portion of the demo is complete. You're welcome to tear
+# down your infrastructure right now, or if you skip the teardown, you can
+# start experimenting with bazel!
+
+# 9: (OPTIONAL) Delete k8s clusters and associated infrastructure and go back to a blank slate.
 .PHONY: teardown
 teardown:
-	$(ROOT)/teardown.sh
-
-.PHONY: push-pyrios
-push-pyrios:
-	docker push ${PYRIOS_DOCKER_REPO}:${PYRIOS_VERSION}
-
-.PHONY: push-pyrios-ui
-push-pyrios-ui:
-	docker push ${PYRIOS_UI_DOCKER_REPO}:${PYRIOS_UI_VERSION}
+	$(ROOT)/scripts/teardown.sh
 
 ################################################################################################
-#                      Bazel new world order 9/26/18                                           #
+#                      pyrios/pyrios-ui                                                        #
 ################################################################################################
+
 .PHONY: bazel-clean
 bazel-clean:
 	bazel clean --expunge
@@ -153,78 +145,108 @@ bazel-clean:
 .PHONY: bazel-test
 bazel-test:
 	bazel ${BAZEL_OPTIONS} test \
-	--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+	# --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
 	//pyrios/... //pyrios-ui/... //test:verify-all --test_output=errors
 
+
+
+
 # build for your host OS, for local development/testing (not in docker)
-.PHONY: bazel-build-pyrios
-bazel-build-pyrios:
-	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios/...
+# todo: do we want these?? i believe we'd have to set up go_binary targets
+# .PHONY: bazel-build-pyrios
+# bazel-build-pyrios:
+# 	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios/...
 
-.PHONY: bazel-build-pyrios-ui
-bazel-build-pyrios-ui:
-	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...
+# .PHONY: bazel-build-pyrios-ui
+# bazel-build-pyrios-ui:
+# 	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...
 
-.PHONY: bazel-build
-bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
+# .PHONY: bazel-build
+# bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
+
+
 
 .PHONY: bazel-build-pyrios-image
 bazel-build-pyrios-image:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_REPO} \
-		--define TAG=${PYRIOS_TAG} \
-		//pyrios:go_image
+		//pyrios:app_image
 
 .PHONY: bazel-build-pyrios-ui-image
 bazel-build-pyrios-ui-image:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_UI_REPO} \
-		--define TAG=${PYRIOS_UI_TAG} \
-		//pyrios-ui:go_image
+		//pyrios-ui:app_image
 
 .PHONY: bazel-build-images
 bazel-build-images: bazel-build-pyrios-image bazel-build-pyrios-ui-image
 
-.PHONY: bazel-push-pyrios
-bazel-push-pyrios:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_REPO} \
-		--define TAG=${PYRIOS_TAG} \
-		//pyrios:push
+# todo: we're currently accessing this functionality via rules_k8s
+# .PHONY: bazel-push-pyrios
+# bazel-push-pyrios:
+# 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+# 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+# 		//pyrios:staging
 
-.PHONY: bazel-push-pyrios-ui
-bazel-push-pyrios-ui:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-        --define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_UI_REPO} \
-		--define TAG=${PYRIOS_UI_TAG} \
-		//pyrios-ui:push
+# .PHONY: bazel-push-pyrios-ui
+# bazel-push-pyrios-ui:
+# 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+# 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+# 		//pyrios-ui:staging
 
-.PHONY: bazel-push-images
-bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
+# .PHONY: bazel-push-images
+# bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
+
+
+# this is sort of like a standard kubernetes dry run - except that it pushes
+# the image to the repo. it will print out the manifests to the terminal
+.PHONY: bazel-publish-pyrios-image
+bazel-publish-pyrios-image:
+	bazel run //pyrios:staging
+
+.PHONY: bazel-publish-pyrios-ui-image
+bazel-publish-pyrios-ui-image:
+	bazel run //pyrios-ui:staging
+
+.PHONY: bazel-publish-images
+bazel-publish-images: bazel-publish-pyrios-image bazel-publish-pyrios-ui-image
+
+
+# this is publishing a k8s_object- which allows you to bundle arbitrary
+# kube resources together. for example, the sevice with deploymnent
+.PHONY: bazel-deploy-pyrios
+bazel-deploy-pyrios:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		//pyrios:staging.apply
+
+.PHONY: bazel-deploy-pyrios-ui
+bazel-deploy-pyrios-ui:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		//pyrios-ui:staging.apply
+
+.PHONY: bazel-deploy-pyrios-all
+bazel-deploy-pyrios-all:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		//pyrios:staging.apply //pyrios-ui:staging.apply
+
+# delete your pyrios resources from kubernetes
+.PHONY: bazel-delete-pyrios
+bazel-delete-pyrios:
+	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete
+
+.PHONY: bazel-delete-pyrios-ui
+bazel-delete-pyrios-ui:
+	bazel run ${BAZEL_OPTIONS} //pyrios-ui:staging.delete
+
+.PHONY: bazel-delete-pyrios-all
+bazel-delete-pyrios-all:
+	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete 	//pyrios-ui:staging.delete
 
 ################################################################################################
 #                                 kubernetes helpers                                           #
 ################################################################################################
 
+# this works off of the old static manifests
 .PHONY: deploy
 deploy:
 	kubectl apply -f pyrios/manifests/
 	kubectl apply -f pyrios-ui/manifests/
-
-################################################################################################
-#                                 testing helpers                                              #
-################################################################################################
-
-.PHONY: gofmt
-gofmt:
-	gofmt -s -w pyrios-ui/
-	gofmt -s -w pyrios/
 

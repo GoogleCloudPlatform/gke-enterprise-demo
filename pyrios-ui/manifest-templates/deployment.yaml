@@ -12,48 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Deployment for pyrios
+# Deployment for pyrios-ui
 # See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pyrios
+  name: pyrios-ui
   labels:
-    app: pyrios
+    app: pyrios-ui
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: pyrios
+      app: pyrios-ui
   template:
     metadata:
       labels:
-        app: pyrios
+        app: pyrios-ui
     spec:
       containers:
-      - name: pyrios
-        image: us.gcr.io/pso-examples/server:staging
-        env:
-        - name: ES_SERVER
-          valueFrom:
-            configMapKeyRef:
-              name: esconfig
-              key: ES_SERVER
+      - name: pyrios-ui
+        image: us.gcr.io/pso-helmsman-cicd-infra/pyrios-ui:staging
         imagePullPolicy: Always
         ports:
-        - containerPort: 9200
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 9200
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 9200
-        resources:
-          limits:
-            cpu: 10m
-            memory: 100Mi
-          requests:
-            cpu: 10m
-            memory: 100Mi
+        - containerPort: 8080
+        env:
+        - name: PYRIOS_ENDPOINT
+          value: pyrios

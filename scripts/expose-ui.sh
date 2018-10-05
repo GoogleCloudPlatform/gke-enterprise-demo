@@ -14,10 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# In order to not expose this project to the internet with a Cloud Load Balancer
+# we are instead port-forwarding to the node and exposing the pod port
+
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "=" installs ElasticSerach Cluster  on GKE               -"
-# "=" installs pyrios on GKE                              -"
+# "- port-forward to pyrios-ui pod of the cloud GKE cluster-"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
@@ -25,9 +27,15 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-echo "Installing k8s resources"
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# create on prem k8s resouces
-"$ROOT"/on-prem-create.sh
-# create cloud k8s resouces
-"$ROOT"/cloud-create.sh
+PROJECT_ROOT=..
+
+
+source "$PROJECT_ROOT"/k8s.env
+
+echo "kubectl uses ${CLOUD_GKE_CONTEXT}"
+kubectl config use-context "${CLOUD_GKE_CONTEXT}"
+# look up the pyrios-ui pod id by the label app=pyrios-ui
+POD_ID=$(kubectl get pods -l app=pyrios-ui -o jsonpath='{.items[*].metadata.name}')
+# set up port forwarding from the laptop/desktop to the pyrios-ui pod
+# so that we can talk to pyrios
+kubectl port-forward "${POD_ID}" 8080:8080

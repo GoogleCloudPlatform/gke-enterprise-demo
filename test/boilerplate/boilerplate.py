@@ -41,7 +41,7 @@ def get_args():
                         help="list of files to check, "
                              "all files if unspecified",
                         nargs='*')
-    rootdir = os.path.dirname(__file__) + "/../../"
+    rootdir = os.path.dirname(__file__) + "../../"
     rootdir = os.path.abspath(rootdir)
     parser.add_argument(
         "--rootdir",

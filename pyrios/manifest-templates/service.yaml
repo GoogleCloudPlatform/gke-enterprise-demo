@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# common.sh has helper functions, and is sourced by the other scripts in this directory
-set -o errexit
-set -o nounset
-set -o pipefail
-
-
-# shellcheck source=../
-# next line disables the unused variable warning. this script is a helper to set PROJECT_ROOT
-# and other common variables for the rest of the scripts
-# shellcheck disable=SC2034
-PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
+# Service for pyrios, this is designed for in cluster application to access
+# on prem ElasticSearch cluster
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyrios
+  labels:
+    app: pyrios
+spec:
+  selector:
+    app: pyrios
+  ports:
+    - port: 9200
+      targetPort: 9200
+      protocol: TCP
+      name: http
+  type: ClusterIP

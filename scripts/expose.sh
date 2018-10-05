@@ -14,33 +14,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# In order to not expose this project to the internet with a Cloud Load Balancer
+# we are instead port-forwarding to the node and exposing the pod port
 
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "-  install pyrios on cloud cluster                     -"
+# "-  port-forward to pyrios pod of the cloud GKE cluster  -"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
+set -o errexit
 set -o nounset
 set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+PROJECT_ROOT=..
+source "$PROJECT_ROOT"/k8s.env
 
-echo "Creating pyrios deployment on ${CLOUD_GKE_CONTEXT}"
-
-# get elasticsearch service's internal load balancer IP
-LB_IP=$(kubectl --namespace default --context="${ON_PREM_GKE_CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
+echo "kubectl uses ${CLOUD_GKE_CONTEXT}"
 kubectl config use-context "${CLOUD_GKE_CONTEXT}"
-echo "LB_IP=$LB_IP"
-kubectl --namespace default create configmap esconfig \
---from-literal=ES_SERVER="${LB_IP}"
-
-kubectl --namespace default apply -f "$ROOT"/pyrios/manifests
-kubectl --namespace default rollout status -f "$ROOT"/pyrios/manifests/deployment.yaml
-
-kubectl --namespace default apply -f "$ROOT"/pyrios-ui/manifests
-kubectl --namespace default rollout status -f "$ROOT"/pyrios-ui/manifests/deployment.yaml
-
-kubectl --namespace default apply -f "$ROOT"/policy/cloud-network-policy.yaml
+# look up the pyrios pod id by the label app=pyrios
+POD_ID=$(kubectl --namespace default get pods -l app=pyrios -o jsonpath='{.items[*].metadata.name}')
+# set up port forwarding from the laptop/desktop to the pyrios pod
+# so that we can talk to the Elasticsearch on prem ILB (internal load balancer)
+# via pyrios pod
+kubectl --namespace default port-forward "${POD_ID}" 9200:9200 &

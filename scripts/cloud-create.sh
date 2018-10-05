@@ -14,26 +14,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "-  Uninstalls all k8s resources and deletes             -"
-# "-  the GKE cluster                                      -"
+# "-  install pyrios on cloud cluster                     -"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
-# Do not set errexit as it makes partial deletes impossible
+set -o errexit
 set -o nounset
 set -o pipefail
 
-ROOT=$(dirname "${BASH_SOURCE[0]}")
-# shellcheck disable=SC1090
-source "$ROOT"/k8s.env
+PROJECT_ROOT=..
 
+source "$PROJECT_ROOT"/k8s.env
+
+echo "Creating pyrios deployment on ${CLOUD_GKE_CONTEXT}"
+
+# get elasticsearch service's internal load balancer IP
+LB_IP=$(kubectl --namespace default --context="${ON_PREM_GKE_CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
 kubectl config use-context "${CLOUD_GKE_CONTEXT}"
-# delete k8s resources
-kubectl --namespace default delete -f "$ROOT"/pyrios/manifests
-kubectl --namespace default delete -f "$ROOT"/pyrios-ui/manifests
-# delete config map
-kubectl --namespace default delete configmap esconfig
-# delete network policy
-kubectl --namespace default delete -f "$ROOT"/policy/cloud-network-policy.yaml
+echo "LB_IP=$LB_IP"
+
+# todo: make a manifest for this command and apply -f it so can be updated
+kubectl --namespace default create configmap esconfig \
+		--from-literal=ES_SERVER="${LB_IP}" || true
+
+kubectl --namespace default apply -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml
+
+bazel run //pyrios:staging.apply
+bazel run //pyrios-ui:staging.apply

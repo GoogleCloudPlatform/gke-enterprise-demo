@@ -12,12 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# gazelle:proto package
-# gazelle:proto_group go_package
-
-load("@bazel_gazelle//:def.bzl", "gazelle")
-
-gazelle(
-    name = "gazelle",
-    prefix = "github.com/GoogleCloudPlatform/gke-enterprise-demo",
-)
+package(default_visibility = ["//visibility:public"])
