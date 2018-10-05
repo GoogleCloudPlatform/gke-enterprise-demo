@@ -12,49 +12,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+package(default_visibility = ["//visibility:public"])
+
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
-load("@io_bazel_rules_docker//container:container.bzl", "container_push", "container_image")
 
-go_binary(
-    name = "pyrios",
-    embed = [":go_default_library"],
-    visibility = ["//visibility:public"],
-)
-
-go_library(
-    name = "go_default_library",
+go_image(
+    name = "app_image",
     srcs = ["main.go"],
     importpath = "github.com/GoogleCloudPlatform/gke-enterprise-demo/pyrios",
-    visibility = ["//visibility:private"],
     deps = [
         "@com_google_cloud_go//compute/metadata:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
         "@io_opencensus_go_contrib_exporter_stackdriver//:go_default_library",
-    ],
-)
-
-go_image(
-    name = "go_image_base",
-    embed = [":go_default_library"],
-    goarch = "amd64",
-    goos = "linux",
+        ],
     pure = "on",
 )
 
-container_image(
-    name = "go_image",
-    base = ":go_image_base",
-    ports = ["9200"],
-    workdir = "/app",
-    stamp = True,
+load("@k8s_deploy//:defaults.bzl", "k8s_deploy")
+load("@k8s_service//:defaults.bzl", "k8s_service")
+
+k8s_deploy(
+    name = "staging-deployment",
+    images = {
+        "us.gcr.io/pso-helmsman-cicd-infra/pyrios:staging": ":app_image",
+    },
+    template = "//pyrios/manifest-templates:deployment.yaml",
 )
 
-container_push(
-    name = "push",
-    format = "Docker",
-    image = ":go_image",
-    registry = "$(REGISTRY)",
-    repository = "$(REPOSITORY)",
-    tag = "$(TAG)",
+k8s_service(
+    name = "staging-service",
+    template = "//pyrios/manifest-templates:service.yaml",
+)
+
+load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
+
+k8s_objects(
+    name = "staging",
+    objects = [
+        ":staging-deployment",
+        ":staging-service",
+    ],
 )

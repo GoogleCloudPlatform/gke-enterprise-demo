@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-# set -o errexit
-# set -o nounset
+# shellcheck disable=SC2148
 
 PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:=.
@@ -40,7 +38,6 @@ check_gofmt:
 gofmt:
 	gofmt -s -w pyrios-ui/
 	gofmt -s -w pyrios/
-
 
 .PHONY: check_terraform
 check_terraform:
@@ -148,62 +145,108 @@ bazel-clean:
 .PHONY: bazel-test
 bazel-test:
 	bazel ${BAZEL_OPTIONS} test \
-	--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-			--define REGISTRY=gcr.io \
-		--define REPOSITORY=pyrios \
-		--define TAG=latest \
+	# --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
 	//pyrios/... //pyrios-ui/... //test:verify-all --test_output=errors
 
+
+
+
 # build for your host OS, for local development/testing (not in docker)
-.PHONY: bazel-build-pyrios
-bazel-build-pyrios:
-	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios/...
+# todo: do we want these?? i believe we'd have to set up go_binary targets
+# .PHONY: bazel-build-pyrios
+# bazel-build-pyrios:
+# 	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios/...
 
-.PHONY: bazel-build-pyrios-ui
-bazel-build-pyrios-ui:
-	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...
+# .PHONY: bazel-build-pyrios-ui
+# bazel-build-pyrios-ui:
+# 	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...
 
-.PHONY: bazel-build
-bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
+# .PHONY: bazel-build
+# bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
+
+
 
 .PHONY: bazel-build-pyrios-image
 bazel-build-pyrios-image:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_REPO} \
-		--define TAG=${PYRIOS_TAG} \
-		//pyrios:
+		//pyrios:app_image
 
 .PHONY: bazel-build-pyrios-ui-image
 bazel-build-pyrios-ui-image:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_UI_REPO} \
-		--define TAG=${PYRIOS_UI_TAG} \
-		//pyrios-ui:go_image
+		//pyrios-ui:app_image
 
 .PHONY: bazel-build-images
 bazel-build-images: bazel-build-pyrios-image bazel-build-pyrios-ui-image
 
-.PHONY: bazel-push-pyrios
-bazel-push-pyrios:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_REPO} \
-		--define TAG=${PYRIOS_TAG} \
-		//pyrios:push
+# todo: we're currently accessing this functionality via rules_k8s
+# .PHONY: bazel-push-pyrios
+# bazel-push-pyrios:
+# 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+# 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+# 		//pyrios:staging
 
-.PHONY: bazel-push-pyrios-ui
-bazel-push-pyrios-ui:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-        --define REGISTRY=${IMAGE_REGISTRY} \
-		--define REPOSITORY=${PYRIOS_UI_REPO} \
-		--define TAG=${PYRIOS_UI_TAG} \
-		//pyrios-ui:push
+# .PHONY: bazel-push-pyrios-ui
+# bazel-push-pyrios-ui:
+# 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+# 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+# 		//pyrios-ui:staging
 
-.PHONY: bazel-push-images
-bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
+# .PHONY: bazel-push-images
+# bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
+
+
+# this is sort of like a standard kubernetes dry run - except that it pushes
+# the image to the repo. it will print out the manifests to the terminal
+.PHONY: bazel-publish-pyrios-image
+bazel-publish-pyrios-image:
+	bazel run //pyrios:staging
+
+.PHONY: bazel-publish-pyrios-ui-image
+bazel-publish-pyrios-ui-image:
+	bazel run //pyrios-ui:staging
+
+.PHONY: bazel-publish-images
+bazel-publish-images: bazel-publish-pyrios-image bazel-publish-pyrios-ui-image
+
+
+# this is publishing a k8s_object- which allows you to bundle arbitrary
+# kube resources together. for example, the sevice with deploymnent
+.PHONY: bazel-deploy-pyrios
+bazel-deploy-pyrios:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		//pyrios:staging.apply
+
+.PHONY: bazel-deploy-pyrios-ui
+bazel-deploy-pyrios-ui:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		//pyrios-ui:staging.apply
+
+.PHONY: bazel-deploy-pyrios-all
+bazel-deploy-pyrios-all:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		//pyrios:staging.apply //pyrios-ui:staging.apply
+
+# delete your pyrios resources from kubernetes
+.PHONY: bazel-delete-pyrios
+bazel-delete-pyrios:
+	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete
+
+.PHONY: bazel-delete-pyrios-ui
+bazel-delete-pyrios-ui:
+	bazel run ${BAZEL_OPTIONS} //pyrios-ui:staging.delete
+
+.PHONY: bazel-delete-pyrios-all
+bazel-delete-pyrios-all:
+	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete 	//pyrios-ui:staging.delete
+
+################################################################################################
+#                                 kubernetes helpers                                           #
+################################################################################################
+
+# this works off of the old static manifests
+.PHONY: deploy
+deploy:
+	kubectl apply -f pyrios/manifests/
+	kubectl apply -f pyrios-ui/manifests/
+

@@ -35,13 +35,12 @@ echo "Creating pyrios deployment on ${CLOUD_GKE_CONTEXT}"
 LB_IP=$(kubectl --namespace default --context="${ON_PREM_GKE_CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
 kubectl config use-context "${CLOUD_GKE_CONTEXT}"
 echo "LB_IP=$LB_IP"
+
+# todo: make a manifest for this command and apply -f it so can be updated
 kubectl --namespace default create configmap esconfig \
-		--from-literal=ES_SERVER="${LB_IP}"
+		--from-literal=ES_SERVER="${LB_IP}" || true
 
 kubectl --namespace default apply -f "$PROJECT_ROOT"/policy/cloud-network-policy.yaml
 
-kubectl --namespace default apply -f "$PROJECT_ROOT"/pyrios/manifests
-kubectl --namespace default rollout status -f "$PROJECT_ROOT"/pyrios/manifests/deployment.yaml
-
-kubectl --namespace default apply -f "$PROJECT_ROOT"/pyrios-ui/manifests
-kubectl --namespace default rollout status -f "$PROJECT_ROOT"/pyrios-ui/manifests/deployment.yaml
+bazel run //pyrios:staging.apply
+bazel run //pyrios-ui:staging.apply
