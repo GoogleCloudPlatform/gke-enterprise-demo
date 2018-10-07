@@ -18,11 +18,13 @@ limitations under the License.
 resource "google_compute_network" "network" {
   name                    = "${var.network_name}"
   auto_create_subnetworks = "false"
+  project                 = "${var.project}"
 }
 
 // subnet with secondary_ip_range for IP aliasing
 resource "google_compute_subnetwork" "subnetwork" {
   name          = "${var.network_name}-${var.subnet_region}"
+  project       = "${var.project}"
   ip_cidr_range = "${var.primary_range}"
   network       = "${google_compute_network.network.self_link}"
   region        = "${var.subnet_region}"
@@ -41,6 +43,7 @@ resource "google_compute_subnetwork" "subnetwork" {
 // allow inbound SSH connection for troubleshooting
 resource "google_compute_firewall" "ssh-anywhere" {
   name    = "${var.network_name}-ssh-anywhere"
+  project = "${var.project}"
   network = "${google_compute_network.network.self_link}"
 
   allow {
@@ -60,6 +63,7 @@ resource "google_compute_firewall" "ssh-anywhere" {
 // Reserve regional external (static) IP addresses as ${var.vpn_ip}
 
 resource "google_compute_vpn_gateway" "vpn_gateway" {
+  project = "${var.project}"
   name    = "${var.network_name}-vpn-gateway"
   network = "${google_compute_network.network.self_link}"
   region  = "${var.subnet_region}"
@@ -69,6 +73,7 @@ resource "google_compute_vpn_gateway" "vpn_gateway" {
 // 3 forwarding rules
 resource "google_compute_forwarding_rule" "esp_rule" {
   name        = "${var.network_name}-esp-rule"
+  project     = "${var.project}"
   region      = "${var.subnet_region}"
   ip_protocol = "ESP"
   ip_address  = "${var.vpn_ip}"
@@ -77,6 +82,7 @@ resource "google_compute_forwarding_rule" "esp_rule" {
 
 resource "google_compute_forwarding_rule" "udp_500_rule" {
   name        = "${var.network_name}-udp-500-rule"
+  project     = "${var.project}"
   region      = "${var.subnet_region}"
   ip_protocol = "UDP"
   port_range  = "500"
@@ -86,6 +92,7 @@ resource "google_compute_forwarding_rule" "udp_500_rule" {
 
 resource "google_compute_forwarding_rule" "udp_4500_rule" {
   name        = "${var.network_name}-udp-4500-rule"
+  project     = "${var.project}"
   region      = "${var.subnet_region}"
   ip_protocol = "UDP"
   port_range  = "4500"
@@ -103,6 +110,7 @@ resource "google_compute_vpn_tunnel" "vpn_tunnel" {
   ]
 
   name               = "${var.network_name}-vpn-tunnel"
+  project            = "${var.project}"
   region             = "${var.subnet_region}"
   peer_ip            = "${var.peer_ip}"
   shared_secret      = "${var.shared_secret}"
@@ -125,6 +133,7 @@ resource "google_compute_vpn_tunnel" "vpn_tunnel" {
 // Create a static route for each remote IP range
 resource "google_compute_route" "route_to_vpn" {
   name                = "${var.network_name}-route-to-vpn"
+  project             = "${var.project}"
   network             = "${google_compute_network.network.self_link}"
   dest_range          = "${var.destination_range}"
   priority            = 1000

@@ -19,7 +19,7 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 go_image(
     name = "app_image",
     srcs = ["main.go"],
-    importpath = "github.com/GoogleCloudPlatform/gke-enterprise-demo/pyrios",
+    importpath = "github.com/GoogleCloudPlatform/gke-enterprise-demo/pyrios-ui",
     deps = [
         "@com_github_tidwall_gjson//:go_default_library",
         "@com_google_cloud_go//compute/metadata:go_default_library",
@@ -31,34 +31,64 @@ go_image(
         "@io_opencensus_go//trace:go_default_library",
         "@io_opencensus_go_contrib_exporter_stackdriver//:go_default_library",
         ],
+    goos = "linux",
+    goarch = "amd64",
     pure = "on",
 )
 
-load("@k8s_deploy//:defaults.bzl", "k8s_deploy")
+_STAGING_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_staging-cloud-cluster"
+_STAGING_CONTEXT = _STAGING_CLUSTER # this won't always be the case, be mindful
+_STAGING_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra"
 
+# SET YOUR INDIVIDUAL (DEV ENV) VARIABLES
+
+_DEV_CLUSTER =    "gke_pso-helmsman-cicd-infra_us-west1-b_dev-cloud-cluster"
+_DEV_CONTEXT = _DEV_CLUSTER
+_DEV_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra/{BUILD_USER}"
+
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+
+load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
+load("@k8s_service//:defaults.bzl", "k8s_service",)
+load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
+
+## Staging resources
 k8s_deploy(
-    name = "staging",
+    name = "staging-deployment",
+    cluster = _STAGING_CLUSTER,
+    context = _STAGING_CONTEXT,
+    image_chroot = _STAGING_IMAGE_REPO,
     images = {
-        "us.gcr.io/pso-helmsman-cicd-infra/pyrios-ui:staging": ":app_image",
+        "pyrios-ui:do_not_delete": ":app_image",
     },
-    template = "//pyrios-ui/manifest-templates/staging:deployment.yaml",
+    template = "//pyrios-ui/manifest-templates:deployment.yaml",
 )
 
+load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
 
-## developer resources
+k8s_objects(
+    name = "staging",
+    objects = [
+        ":staging-deployment",
+    ],
+)
 
+load("@k8s_deploy//:defaults.bzl", "k8s_deploy")
+load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
+
+
+## Dev resources
 k8s_deploy(
     name = "dev-deployment",
+    cluster = _DEV_CLUSTER,
+    context = _DEV_CONTEXT,
+    image_chroot = _DEV_IMAGE_REPO,
     images = {
-        "us.gcr.io/pso-helmsman-cicd-infra/pyrios-ui:staging": ":app_image",
+        "pyrios-ui:do_not_delete": ":app_image",
     },
-    template = "//pyrios-ui/manifest-templates/dev:deployment.yaml",
+    template = "//pyrios-ui/manifest-templates:deployment.yaml",
 )
 
-k8s_service(
-    name = "dev-service",
-    template = "//pyrios-ui/manifest-templates/dev:service.yaml",
-)
 
 load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
 
@@ -66,6 +96,5 @@ k8s_objects(
     name = "dev",
     objects = [
         ":dev-deployment",
-        ":dev",
-        ]
-    )
+    ],
+)

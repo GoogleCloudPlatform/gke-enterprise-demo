@@ -1,5 +1,3 @@
-# shellcheck disable=SC2148
-
 PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:=.
 
@@ -89,7 +87,7 @@ terraform:
 	terraform apply tfplan
 
 # 3. We will not be checking secrets into version control. This helps manage that process
-.PHONY: config
+.PHONY: configure
 config:
 	$(ROOT)/scripts/configure.sh
 
@@ -101,9 +99,14 @@ create:
 
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
-.PHONY: expose
-expose:
-	$(ROOT)/scripts/expose.sh
+.PHONY: expose-staging
+expose-staging:
+	$(ROOT)/scripts/expose-staging.sh
+
+# 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
+.PHONY: expose-dev
+expose-dev:
+	$(ROOT)/scripts/expose-dev.sh
 
 # 6: Seeds the demo data via the proxy exposed in 5
 .PHONY: load
@@ -121,13 +124,13 @@ close-expose:
 	killall kubectl
 
 # 8: Expose the pyrios UI so that you can navigate to the site on localhost:8080
-.PHONY: expose-ui
+.PHONY: expose-ui-staging
 expose-ui:
-	$(ROOT)/scripts/expose-ui.sh
+	$(ROOT)/scripts/expose-ui-staging.sh
 
 # The elasticsearch portion of the demo is complete. You're welcome to tear
 # down your infrastructure right now, or if you skip the teardown, you can
-# start experimenting with bazel!
+# start experimenting with bazel!q
 
 # 9: (OPTIONAL) Delete k8s clusters and associated infrastructure and go back to a blank slate.
 .PHONY: teardown
@@ -148,24 +151,6 @@ bazel-test:
 	# --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
 	//pyrios/... //pyrios-ui/... //test:verify-all --test_output=errors
 
-
-
-
-# build for your host OS, for local development/testing (not in docker)
-# todo: do we want these?? i believe we'd have to set up go_binary targets
-# .PHONY: bazel-build-pyrios
-# bazel-build-pyrios:
-# 	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios/...
-
-# .PHONY: bazel-build-pyrios-ui
-# bazel-build-pyrios-ui:
-# 	bazel build ${BAZEL_OPTIONS} --features=pure //pyrios-ui/...
-
-# .PHONY: bazel-build
-# bazel-build: bazel-build-pyrios bazel-build-pyrios-ui
-
-
-
 .PHONY: bazel-build-pyrios-image
 bazel-build-pyrios-image:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
@@ -179,66 +164,63 @@ bazel-build-pyrios-ui-image:
 .PHONY: bazel-build-images
 bazel-build-images: bazel-build-pyrios-image bazel-build-pyrios-ui-image
 
-# todo: we're currently accessing this functionality via rules_k8s
-# .PHONY: bazel-push-pyrios
-# bazel-push-pyrios:
-# 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-# 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-# 		//pyrios:staging
-
-# .PHONY: bazel-push-pyrios-ui
-# bazel-push-pyrios-ui:
-# 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-# 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-# 		//pyrios-ui:staging
-
-# .PHONY: bazel-push-images
-# bazel-push-images: bazel-push-pyrios bazel-push-pyrios-ui
-
 
 # this is sort of like a standard kubernetes dry run - except that it pushes
 # the image to the repo. it will print out the manifests to the terminal
 .PHONY: bazel-publish-pyrios-image
 bazel-publish-pyrios-image:
-	bazel run //pyrios:staging
+	bazel run --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //pyrios:staging
 
 .PHONY: bazel-publish-pyrios-ui-image
 bazel-publish-pyrios-ui-image:
-	bazel run //pyrios-ui:staging
+	bazel run --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //pyrios-ui:staging
 
 .PHONY: bazel-publish-images
 bazel-publish-images: bazel-publish-pyrios-image bazel-publish-pyrios-ui-image
 
-
 # this is publishing a k8s_object- which allows you to bundle arbitrary
 # kube resources together. for example, the sevice with deploymnent
-.PHONY: bazel-deploy-pyrios
-bazel-deploy-pyrios:
+.PHONY: bazel-deploy-pyrios-staging
+bazel-deploy-pyrios-staging:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
 		//pyrios:staging.apply
 
-.PHONY: bazel-deploy-pyrios-ui
-bazel-deploy-pyrios-ui:
+.PHONY: bazel-deploy-pyrios-ui-staging
+bazel-deploy-pyrios-ui-staging:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
 		//pyrios-ui:staging.apply
+		
+.PHONY: bazel-deploy-staging
+bazel-deploy-staging: bazel-deploy-pyrios-staging bazel-deploy-pyrios-ui-staging
 
-.PHONY: bazel-deploy-pyrios-all
-bazel-deploy-pyrios-all:
+.PHONY: bazel-deploy-pyrios-dev
+bazel-deploy-pyrios-dev:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		//pyrios:staging.apply //pyrios-ui:staging.apply
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		//pyrios:dev.apply
 
-# delete your pyrios resources from kubernetes
-.PHONY: bazel-delete-pyrios
-bazel-delete-pyrios:
-	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete
+.PHONY: bazel-deploy-pyrios-ui-dev
+bazel-deploy-pyrios-ui-dev:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		//pyrios-ui:dev.apply
+		
+.PHONY: bazel-deploy-dev
+bazel-deploy-dev: bazel-deploy-pyrios-dev bazel-deploy-pyrios-ui-dev
 
-.PHONY: bazel-delete-pyrios-ui
-bazel-delete-pyrios-ui:
-	bazel run ${BAZEL_OPTIONS} //pyrios-ui:staging.delete
-
-.PHONY: bazel-delete-pyrios-all
-bazel-delete-pyrios-all:
+# delete your staging resources from kubernetes
+.PHONY: bazel-delete-staging
+bazel-delete-staging:
 	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete 	//pyrios-ui:staging.delete
+
+# delete your dev resources from kubernetes
+.PHONY: bazel-delete-dev
+bazel-delete-dev:
+	bazel run ${BAZEL_OPTIONS} \
+	--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+	 //pyrios:dev.delete //pyrios-ui:dev.delete
 
 ################################################################################################
 #                                 kubernetes helpers                                           #

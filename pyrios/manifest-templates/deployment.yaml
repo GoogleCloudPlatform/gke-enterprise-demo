@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: pyrios
-        image: pyrios:staging
+        image: pyrios:do_not_delete
         env:
         - name: ES_SERVER
           valueFrom:

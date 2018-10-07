@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+    # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+
+_STAGING_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_staging-cloud-cluster"
+_STAGING_CONTEXT = _STAGING_CLUSTER # this won't always be the case, be mindful
+_STAGING_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra"
+
+
+# SET YOUR INDIVIDUAL (DEV ENV) VARIABLES
+
+_DEV_CLUSTER =    "gke_pso-helmsman-cicd-infra_us-west1-b_dev-cloud-cluster"
+_DEV_CONTEXT = _DEV_CLUSTER
+_DEV_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra/{BUILD_USER}"
+
 
 package(default_visibility = ["//visibility:public"])
 
@@ -25,6 +38,8 @@ go_image(
         "@io_opencensus_go//trace:go_default_library",
         "@io_opencensus_go_contrib_exporter_stackdriver//:go_default_library",
         ],
+    goos = "linux",
+    goarch = "amd64",
     pure = "on",
 )
 
@@ -32,50 +47,23 @@ load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
 load("@k8s_service//:defaults.bzl", "k8s_service",)
 load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
 
-
-
-k8s_defaults(
-    name = "k8s_object",
-    cluster = "//scripts:deploy_cluster",
-    context = "//scripts:deploy_cluster",
-    image_chroot = "//scripts:deploy_repo" + "{BUILD_USER}",
-    namespace = "{BUILD_USER}",
-)
-
-k8s_defaults(
-    name = "k8s_deploy",
-    cluster = "//scripts:deploy_cluster",
-    context = "//scripts:deploy_cluster",
-    image_chroot = "//scripts:deploy_repo" + "{BUILD_USER}",
-    namespace = "{BUILD_USER}",
-    kind = "deployment",
-)
-
-[k8s_defaults(
-    name = "k8s_" + kind,
-    cluster = "//scripts:deploy_cluster",
-    context = "//scripts:deploy_cluster",
-    namespace = "{BUILD_USER}",
-    kind = kind,
-) for kind in [
-    "service",
-    "configmap",
-    # add additional types of k8s objects in this array (including crds!) to manage them
-]]
-
-
-
 ## Staging resources
 k8s_deploy(
     name = "staging-deployment",
+    cluster = _STAGING_CLUSTER,
+    context = _STAGING_CONTEXT,
+    image_chroot = _STAGING_IMAGE_REPO,
     images = {
-        "pyrios:staging": ":app_image",
+        "pyrios:do_not_delete": ":app_image",
     },
     template = "//pyrios/manifest-templates:deployment.yaml",
 )
 
 k8s_service(
     name = "staging-service",
+    cluster = _STAGING_CLUSTER,
+    context = _STAGING_CONTEXT,
+    image_chroot = _STAGING_IMAGE_REPO,
     template = "//pyrios/manifest-templates:service.yaml",
 )
 
@@ -92,17 +80,23 @@ k8s_objects(
 load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
 load("@k8s_service//:defaults.bzl", "k8s_service",)
 
-## Staging resources
+## Dev resources
 k8s_deploy(
     name = "dev-deployment",
+    cluster = _DEV_CLUSTER,
+    context = _DEV_CONTEXT,
+    image_chroot = _DEV_IMAGE_REPO,
     images = {
-        "us.gcr.io/pso-helmsman-cicd-infra/pyrios": ":app_image",
+        "pyrios:do_not_delete": ":app_image",
     },
     template = "//pyrios/manifest-templates:deployment.yaml",
 )
 
 k8s_service(
     name = "dev-service",
+    cluster = _DEV_CLUSTER,
+    context = _DEV_CONTEXT,
+    image_chroot = _DEV_IMAGE_REPO,
     template = "//pyrios/manifest-templates:service.yaml",
 )
 
@@ -115,32 +109,3 @@ k8s_objects(
         ":dev-service",
     ],
 )
-
-
-# ## developer resources
-# load("@k8s_deploy//:defaults.bzl", "k8s_dev_deploy",)
-# load("@k8s_service//:defaults.bzl", "k8s_dev_service", )
-# k8s_deploy(
-#     name = "dev-deployment",
-#     images = {
-#         "us.gcr.io/pso-helmsman-cicd-infra/pyrios:dev": ":app_image",
-#     },
-#     template = "//pyrios/manifest-templates/dev:deployment.yaml",
-# )
-
-# k8s_service(
-#     name = "dev-service",
-#     template = "//pyrios/manifest-templates/dev:service.yaml",
-# )
-
-# load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
-
-# k8s_objects(
-#     name = "dev",
-#     objects = [
-#         ":dev-deployment",
-#         ":dev-service",
-#     ],
-# )
-
-

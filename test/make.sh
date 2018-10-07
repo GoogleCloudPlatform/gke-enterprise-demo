@@ -78,7 +78,7 @@ function check_python() {
 # file ending in '.sh'
 function check_shell() {
   echo "Running shellcheck"
-  if ! [[ "$( grep -rli --exclude-dir=.git --exclude-dir=.terraform --exclude-dir=bazel-*  --exclude-dir=.idea "/*.sh$/" . | xargs shellcheck -x )" ]]; then
+  if ! [[ "$( grep -rli --exclude=Makefile --exclude-dir=.git --exclude-dir=.terraform --exclude-dir=bazel-*  --exclude-dir=.idea  "/*.sh$/" . | xargs shellcheck -x )" ]]; then
     echo " > Shell files conform to spec"
     echo ""
   else

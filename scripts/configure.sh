@@ -73,6 +73,9 @@ command -v gcloud >/dev/null 2>&1 || { \
 command -v kubectl >/dev/null 2>&1 || { \
  echo >&2 "I require kubectl but it's not installed.  Aborting."; exit 1; }
 
-CLOUD_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*cloud-cluster")
-ON_PREM_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*on-prem-cluster")
+STAGING_CLOUD_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*staging-cloud-cluster")
+STAGING_ON_PREM_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*staging-on-prem-cluster")
+DEV_CLOUD_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*dev-cloud-cluster")
+DEV_ON_PREM_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*dev-on-prem-cluster")
+
 EOF

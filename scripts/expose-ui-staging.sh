@@ -19,7 +19,7 @@
 
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "-  port-forward to pyrios pod of the cloud GKE cluster  -"
+# "- port-forward to pyrios-ui pod of the cloud GKE cluster-"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
@@ -28,13 +28,13 @@ set -o nounset
 set -o pipefail
 
 PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
+
 source "$PROJECT_ROOT"k8s.env
 
-echo "kubectl uses ${CLOUD_GKE_CONTEXT}"
-kubectl config use-context "${CLOUD_GKE_CONTEXT}"
-# look up the pyrios pod id by the label app=pyrios
-POD_ID=$(kubectl --namespace default get pods -l app=pyrios -o jsonpath='{.items[*].metadata.name}')
-# set up port forwarding from the laptop/desktop to the pyrios pod
-# so that we can talk to the Elasticsearch on prem ILB (internal load balancer)
-# via pyrios pod
-kubectl --namespace default port-forward "${POD_ID}" 9200:9200 &
+echo "kubectl uses ${STAGING_CLOUD_GKE_CONTEXT}"
+kubectl config use-context "${STAGING_CLOUD_GKE_CONTEXT}"
+# look up the pyrios-ui pod id by the label app=pyrios-ui
+POD_ID=$(kubectl get pods -l app=pyrios-ui -o jsonpath='{.items[*].metadata.name}')
+# set up port forwarding from the laptop/desktop to the pyrios-ui pod
+# so that we can talk to pyrios
+kubectl port-forward "${POD_ID}" 8080:8080
