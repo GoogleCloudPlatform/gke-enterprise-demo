@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 _STAGING_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_staging-cloud-cluster"
 _STAGING_CONTEXT = _STAGING_CLUSTER # this won't always be the case, be mindful
 _STAGING_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra"
-
 
 # SET YOUR INDIVIDUAL (DEV ENV) VARIABLES
 
 _DEV_CLUSTER =    "gke_pso-helmsman-cicd-infra_us-west1-b_dev-cloud-cluster"
 _DEV_CONTEXT = _DEV_CLUSTER
 _DEV_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra/{BUILD_USER}"
-
 
 package(default_visibility = ["//visibility:public"])
 
@@ -38,9 +35,6 @@ go_image(
         "@io_opencensus_go//trace:go_default_library",
         "@io_opencensus_go_contrib_exporter_stackdriver//:go_default_library",
         ],
-    goos = "linux",
-    goarch = "amd64",
-    pure = "on",
 )
 
 load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
