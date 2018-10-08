@@ -59,7 +59,7 @@ check_trailing_whitespace:
 
 .PHONY: check_headers
 check_headers:
-	python test/boilerplate/verify_boilerplate.py
+	@python test/verify_boilerplate.py
 
 
 ################################################################################################
@@ -208,6 +208,14 @@ bazel-deploy-pyrios-ui-dev:
 
 .PHONY: bazel-deploy-dev
 bazel-deploy-dev: bazel-deploy-pyrios-dev bazel-deploy-pyrios-ui-dev
+
+
+.PHONY: bazel-override
+bazel-override:
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		--define cluster=gke-override --define repo=gcr.io/override \
+		//pyrios-ui:dev.apply
 
 # delete your staging resources from kubernetes
 .PHONY: bazel-delete-staging

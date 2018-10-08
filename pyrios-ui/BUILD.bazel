@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
-
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
@@ -115,5 +113,27 @@ k8s_objects(
     name = "dev",
     objects = [
         ":dev-deployment",
+    ],
+)
+
+# Override with command line example
+# make bazel-override
+k8s_deploy(
+    name = "override-deployment",
+    cluster = "$(cluster)",
+    context = "$(cluster)",
+    image_chroot = "$(repo)",
+    images = {
+        "pyrios-ui:do_not_delete": ":app_image",
+    },
+    template = "//pyrios-ui/manifest-templates:deployment.yaml",
+)
+
+load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
+
+k8s_objects(
+    name = "override",
+    objects = [
+        ":override-deployment",
     ],
 )
