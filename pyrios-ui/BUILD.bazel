@@ -12,15 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Rules for go library, image and container
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 
+# Rules for k8s for pyrios:ui
+load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
+load("@k8s_service//:defaults.bzl", "k8s_service",)
+load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
+load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
+
+# Build pyrios-ui
 go_binary(
     name = "pyrios-ui",
     embed = [":go_default_library"],
 )
 
+# Dependencies for pyrios-ui
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
@@ -38,6 +47,7 @@ go_library(
     ],
 )
 
+# Rules for pyrios-ui container
 go_image(
     name = "go_image_base",
     embed = [":go_default_library"],
@@ -46,6 +56,7 @@ go_image(
     pure = "on",
 )
 
+# Rules for pyrios-ui image
 container_image(
     name = "app_image",
     base = ":go_image_base",
@@ -55,71 +66,9 @@ container_image(
     workdir = "/app",
 )
 
-_STAGING_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_staging-cloud-cluster"
-_STAGING_CONTEXT = _STAGING_CLUSTER # this won't always be the case, be mindful
-_STAGING_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra"
-
-# SET YOUR INDIVIDUAL (DEV ENV) VARIABLES
-
-_DEV_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_dev-cloud-cluster"
-_DEV_CONTEXT = _DEV_CLUSTER
-_DEV_IMAGE_REPO = "gcr.io/pso-helmsman-cicd-infra/{BUILD_USER}"
-
-load("@io_bazel_rules_docker//go:image.bzl", "go_image")
-
-load("@k8s_deploy//:defaults.bzl", "k8s_deploy",)
-load("@k8s_service//:defaults.bzl", "k8s_service",)
-load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
-
-## Staging resources
+# Rules for k8s pyrios UI deployment
 k8s_deploy(
-    name = "staging-deployment",
-    cluster = _STAGING_CLUSTER,
-    context = _STAGING_CONTEXT,
-    image_chroot = _STAGING_IMAGE_REPO,
-    images = {
-        "pyrios-ui:do_not_delete": ":app_image",
-    },
-    template = "//pyrios-ui/manifest-templates:deployment.yaml",
-)
-
-load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
-
-k8s_objects(
-    name = "staging",
-    objects = [
-        ":staging-deployment",
-    ],
-)
-
-load("@k8s_deploy//:defaults.bzl", "k8s_deploy")
-load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
-
-## Dev resources
-k8s_deploy(
-    name = "dev-deployment",
-    cluster = _DEV_CLUSTER,
-    context = _DEV_CONTEXT,
-    image_chroot = _DEV_IMAGE_REPO,
-    images = {
-        "pyrios-ui:do_not_delete": ":app_image",
-    },
-    template = "//pyrios-ui/manifest-templates:deployment.yaml",
-)
-
-load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
-
-k8s_objects(
-    name = "dev",
-    objects = [
-        ":dev-deployment",
-    ],
-)
-
-# Override with command line example
-# make bazel-override
-k8s_deploy(
-    name = "override-deployment",
+    name = "pyrios-ui-deployment",
     cluster = "$(cluster)",
     context = "$(cluster)",
     image_chroot = "$(repo)",
@@ -129,11 +78,10 @@ k8s_deploy(
     template = "//pyrios-ui/manifest-templates:deployment.yaml",
 )
 
-load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
-
+# K8s objects for pyrios ui
 k8s_objects(
-    name = "override",
+    name = "k8s",
     objects = [
-        ":override-deployment",
+        ":pyrios-ui-deployment",
     ],
 )

@@ -214,8 +214,14 @@ bazel-deploy-dev: bazel-deploy-pyrios-dev bazel-deploy-pyrios-ui-dev
 bazel-override:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define cluster=gke-override --define repo=gcr.io/override \
-		//pyrios-ui:dev.apply
+		--define cluster=gke_chlove-57705_us-west1-b_staging-cloud-cluster \
+		--define repo=gcr.io/chlove-57705 \
+		//pyrios-ui:override.apply
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		--define cluster=gke_chlove-57705_us-west1-b_staging-cloud-cluster \
+		--define repo=gcr.io/chlove-57705 \
+		//pyrios:override.apply
 
 # delete your staging resources from kubernetes
 .PHONY: bazel-delete-staging
