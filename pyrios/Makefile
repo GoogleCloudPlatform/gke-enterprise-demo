@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 VET_REPORT = vet.report
 TEST_REPORT = tests.xml
 

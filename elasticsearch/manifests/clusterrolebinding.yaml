@@ -29,6 +29,6 @@ roleRef:
   kind: ClusterRole
   name: elasticsearch-data
 subjects:
-- kind: ServiceAccount
+  - kind: ServiceAccount
     name: elasticsearch-data
     namespace: default

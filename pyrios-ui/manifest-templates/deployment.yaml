@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: pyrios-ui
-        image: us.gcr.io/pso-helmsman-cicd-infra/pyrios-ui:staging
+        image: pyrios-ui:do_not_delete
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

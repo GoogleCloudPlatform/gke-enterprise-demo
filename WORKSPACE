@@ -35,38 +35,27 @@ git_repository(
 )
 
 load("@io_bazel_rules_k8s//k8s:k8s.bzl", "k8s_repositories", "k8s_defaults")
+load("@io_bazel_rules_k8s//k8s:object.bzl", "k8s_object")
+
 
 k8s_repositories()
 
-_CLUSTER = "gke_pso-helmsman-cicd-infra_us-west1-b_cloud-cluster"
-_CONTEXT = _CLUSTER
-_NAMESPACE = "{BUILD_USER}"
-
 k8s_defaults(
     name = "k8s_object",
-    cluster = _CLUSTER,
-    context = _CONTEXT,
-    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
-    # namespace = _NAMESPACE,
 )
 
 k8s_defaults(
     name = "k8s_deploy",
-    cluster = _CLUSTER,
-    context = _CONTEXT,
-    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
     kind = "deployment",
-    # namespace = _NAMESPACE,
 )
 
-k8s_defaults(
-    name = "k8s_service",
-    cluster = _CLUSTER,
-    context = _CONTEXT,
-    # image_chroot = "us.gcr.io/pso-helmsman-cicd-infra/",
-    kind = "deployment",
-    # namespace = _NAMESPACE,
-)
+[k8s_defaults(
+    name = "k8s_" + kind,
+    kind = kind,
+) for kind in [
+    "service",
+    "configmap",
+]]
 
 # Standard bazel golang support
 http_archive(

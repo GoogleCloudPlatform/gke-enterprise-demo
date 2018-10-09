@@ -22,7 +22,7 @@ set -o nounset
 
 echo "Checking boilerplate"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" 2>&1 >/dev/null && pwd )"
-boiler=$( (python "$DIR"/boilerplate/boilerplate.py $@ / || true) | sed -e 1d)
+boiler=$( (python "$DIR"/verify_boilerplate.py $@ / || true) | sed -e 1d)
 
 
 if ! [[ $boiler -gt 0 ]]; then

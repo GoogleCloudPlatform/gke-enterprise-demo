@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: pyrios
-        image: us.gcr.io/pso-helmsman-cicd-infra/pyrios:staging
+        image: pyrios:do_not_delete
         env:
         - name: ES_SERVER
           valueFrom:

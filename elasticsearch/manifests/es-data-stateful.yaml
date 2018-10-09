@@ -28,8 +28,8 @@ spec:
   serviceName: elasticsearch-data
   selector:
     matchLabels:
-        component: elasticsearch
-        role: data
+      component: elasticsearch
+      role: data
   template:
     metadata:
       labels:
