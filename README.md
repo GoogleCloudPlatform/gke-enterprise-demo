@@ -162,7 +162,8 @@ gke-on-prem-cluster-f1-pvc-bcc115d6-6472-11e8-a9b6-42010a800140  us-west1  regio
 3. [kubectl matching the latest GKE version](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 4. bash or bash compatible shell
 5. jq (very common, can be found in any package manager)
-5. A Google Cloud Platform project where you have permission to create
+6. bazel (can also be found in most package managers)
+7. A Google Cloud Platform project where you have permission to create
    networks
 
 This demo has been tested with macOS and Cloud Shell.
@@ -271,11 +272,11 @@ cluster for cloud.
 
 ## Configure
 
-Run `make config`, which will generate an environment specific `k8s.env` to be
+Run `make configure`, which will generate an environment specific `k8s.env` to be
 shared among the shell scripts.
 
 ```console
-make config
+make configure
 ```
 
 Example output:
