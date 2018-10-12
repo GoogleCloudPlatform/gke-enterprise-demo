@@ -271,11 +271,11 @@ cluster for cloud.
 
 ## Configure
 
-Run `make config`, which will generate an environment specific `k8s.env` to be
+Run `make configure`, which will generate an environment specific `k8s.env` to be
 shared among the shell scripts.
 
 ```console
-make config
+make configure
 ```
 
 Example output:
