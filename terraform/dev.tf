@@ -144,7 +144,7 @@ resource "google_bigquery_dataset" "dev-log-sink-dataset" {
 resource "google_logging_project_sink" "dev-bigquery-sink" {
   name                   = "dev-gke-elasticsearch-log-sink"
   project                = "${var.project}"
-  destination            = "bigquery.googleapis.com/projects/${var.project}/datasets/${google_bigquery_dataset.staging-log-sink-dataset.dataset_id}"
+  destination            = "bigquery.googleapis.com/projects/${var.project}/datasets/${google_bigquery_dataset.dev-log-sink-dataset.dataset_id}"
   filter                 = "resource.type=container"
   unique_writer_identity = true
 }
@@ -154,7 +154,7 @@ resource "google_project_iam_binding" "dev_bigquery-sink-permissions" {
   role    = "roles/bigquery.dataEditor"
 
   members = [
-    "${google_logging_project_sink.staging-bigquery-sink.writer_identity}",
+    "${google_logging_project_sink.dev-bigquery-sink.writer_identity}",
   ]
 }
 
