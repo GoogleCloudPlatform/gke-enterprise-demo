@@ -1,6 +1,9 @@
 PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:=.
 
+# Make will use bash instead of sh
+SHELL := /usr/bin/env bash
+
 # we're building images based on [distroless](https://github.com/GoogleContainerTools/distroless) are so minimal
 # that they don't have a shell to exec into which makes it difficult to do traditional k8s debugging
 # this option includes busybox but should be omitted for production
@@ -22,15 +25,15 @@ lint: check_shell check_python check_gofmt check_terraform check_docker check_ba
 # working
 .PHONY: check_shell
 check_shell:
-	@source test/make.sh && check_shell
+	@source "${ROOT}/test/make.sh" && check_shell
 
 .PHONY: check_python
 check_python:
-	@source test/make.sh && check_python
+	@source "${ROOT}/test/make.sh" && check_python
 
 .PHONY: check_gofmt
 check_gofmt:
-	@test/verify-gofmt.sh
+	@"${ROOT}/test/verify-gofmt.sh"
 
 .PHONY: gofmt
 gofmt:
@@ -39,27 +42,27 @@ gofmt:
 
 .PHONY: check_terraform
 check_terraform:
-	@source test/make.sh && check_terraform
+	@source "${ROOT}/test/make.sh" && check_terraform
 
 .PHONY: check_docker
 check_docker:
-	@source test/make.sh && docker
+	@source "${ROOT}/test/make.sh" && docker
 
 .PHONY: check_base_files
 check_base_files:
-	@source test/make.sh && basefiles
+	@source "${ROOT}/test/make.sh" && basefiles
 
 .PHONY: check_shebangs
 check_shebangs:
-	@source test/make.sh && check_bash
+	@source "${ROOT}/test/make.sh" && check_bash
 
 .PHONY: check_trailing_whitespace
 check_trailing_whitespace:
-	@source test/make.sh && check_trailing_whitespace
+	@source "${ROOT}/test/make.sh" && check_trailing_whitespace
 
 .PHONY: check_headers
 check_headers:
-	@python test/verify_boilerplate.py
+	@python "${ROOT}/test/verify_boilerplate.py"
 
 
 ################################################################################################
