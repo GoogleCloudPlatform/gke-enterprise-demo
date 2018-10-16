@@ -57,4 +57,5 @@ bq --headless rm -rf dev_gke_elasticsearch_log_dataset || true
 # destroy the rest of GCP infrastructure via Terraform
 # such as GKE clusters,
 
-terraform destroy -var project="$PROJECT" -auto-approve terraform/
+cd terraform && terraform init
+cd terraform && terraform destroy -var project="$PROJECT" -auto-approve

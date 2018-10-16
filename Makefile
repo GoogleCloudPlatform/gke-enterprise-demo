@@ -2,7 +2,7 @@ PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:=.
 
 # Make will use bash instead of sh
-SHELL := /usr/bin/env bash
+SHELL:=/usr/bin/env bash
 
 # we're building images based on [distroless](https://github.com/GoogleContainerTools/distroless) are so minimal
 # that they don't have a shell to exec into which makes it difficult to do traditional k8s debugging
