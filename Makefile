@@ -121,8 +121,8 @@ create:
 	$(ROOT)/scripts/create.sh
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
-.PHONY: expose-staging
-expose-staging:
+.PHONY: expose
+expose:
 	$(ROOT)/scripts/expose-staging.sh
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
