@@ -1,3 +1,21 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Make will use bash instead of sh
+SHELL := /usr/bin/env bash
+
+# google cloud project
 PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:=.
 
@@ -8,6 +26,11 @@ DEBUG?=-c dbg
 
 # add any bazel build options here
 BAZEL_OPTIONS?=
+
+# set the cluster for override build
+CLUSTER?=
+# set the container repo for override build
+CONTAINER_REPO?=
 
 ################################################################################################
 #                      Verification/testing helpers                                            #
@@ -98,14 +121,9 @@ create:
 	$(ROOT)/scripts/create.sh
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
-.PHONY: expose-staging
-expose-staging:
+.PHONY: expose
+expose:
 	$(ROOT)/scripts/expose-staging.sh
-
-# 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
-.PHONY: expose-dev
-expose-dev:
-	$(ROOT)/scripts/expose-dev.sh
 
 # 6: Seeds the demo data via the proxy exposed in 5
 .PHONY: load
@@ -126,11 +144,6 @@ close-expose:
 .PHONY: expose-ui-staging
 expose-ui-staging:
 	$(ROOT)/scripts/expose-ui-staging.sh
-
-# 8: Expose the pyrios UI so that you can navigate to the site on localhost:8080
-.PHONY: expose-ui-dev
-expose-ui-dev:
-	$(ROOT)/scripts/expose-ui-dev.sh
 
 # The elasticsearch portion of the demo is complete. You're welcome to tear
 # down your infrastructure right now, or if you skip the teardown, you can
@@ -196,36 +209,24 @@ bazel-deploy-pyrios-ui-staging:
 .PHONY: bazel-deploy-staging
 bazel-deploy-staging: bazel-deploy-pyrios-staging bazel-deploy-pyrios-ui-staging
 
-.PHONY: bazel-deploy-pyrios-dev
-bazel-deploy-pyrios-dev:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //pyrios:dev.apply
-
-.PHONY: bazel-deploy-pyrios-ui-dev
-bazel-deploy-pyrios-ui-dev:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //pyrios-ui:dev.apply
-
-.PHONY: bazel-deploy-dev
-bazel-deploy-dev: bazel-deploy-pyrios-dev bazel-deploy-pyrios-ui-dev
-
 
 .PHONY: bazel-override
 bazel-override:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define cluster=gke-override --define repo=gcr.io/override \
-		//pyrios-ui:dev.apply
+		--define cluster=${CLUSTER} \
+		--define repo=${CONTAINER_REPO} \
+		//pyrios-ui:k8s.apply
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		--define cluster=${CLUSTER} \
+		--define repo=${CONTAINER_REPO} \
+		//pyrios:k8s.apply
 
 # delete your staging resources from kubernetes
 .PHONY: bazel-delete-staging
 bazel-delete-staging:
 	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete 	//pyrios-ui:staging.delete
-
-# delete your dev resources from kubernetes
-.PHONY: bazel-delete-dev
-bazel-delete-dev:
-	bazel run ${BAZEL_OPTIONS} //pyrios:dev.delete //pyrios-ui:dev.delete
 
 ################################################################################################
 #                                 kubernetes helpers                                           #

@@ -53,7 +53,6 @@ PROJECT=$(gcloud config get-value core/project)
 # we need to be able to robustly delete all resources
 
 bq --headless rm -rf staging_gke_elasticsearch_log_dataset || true
-bq --headless rm -rf dev_gke_elasticsearch_log_dataset || true
 # destroy the rest of GCP infrastructure via Terraform
 # such as GKE clusters,
 
