@@ -52,8 +52,8 @@ PROJECT=$(gcloud config get-value core/project)
 # todo: this seems to get hung up if the log sink export isn't deleted yet.
 # we need to be able to robustly delete all resources
 
-bq --headless rm -r staging_gke_elasticsearch_log_dataset || true
-bq --headless rm -r dev_gke_elasticsearch_log_dataset || true
+bq --headless rm -rf staging_gke_elasticsearch_log_dataset || true
+bq --headless rm -rf dev_gke_elasticsearch_log_dataset || true
 # destroy the rest of GCP infrastructure via Terraform
 # such as GKE clusters,
 
