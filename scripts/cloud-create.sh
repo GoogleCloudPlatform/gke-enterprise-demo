@@ -30,56 +30,41 @@ REPO="gcr.io/$(gcloud config get-value project)"
 
 source "$PROJECT_ROOT"k8s.env
 
-LB_IPS=()
-contexts=($STAGING_ON_PREM_GKE_CONTEXT $DEV_ON_PREM_GKE_CONTEXT)
-echo $STAGING_ON_PREM_GKE_CONTEXT $DEV_ON_PREM_GKE_CONTEXT
-i=0
-# TODO fix dev
-for context in $STAGING_ON_PREM_GKE_CONTEXT $DEV_ON_PREM_GKE_CONTEXT; do
-	LB_IP=$(kubectl --namespace default --context="${context}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
-	kubectl config use-context "${context}"
-	echo "LB_IP=$LB_IP"
+context="${STAGING_ON_PREM_GKE_CONTEXT}"
+LB_IP=$(kubectl --namespace default --context="${context}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
+kubectl config use-context "${context}"
 
-	LB_IPS[i]="$LB_IP"
-	i=$((i++))
-done
+# applying network policy to cloud cluster to help keep traffic going where it should
+kubectl --namespace default \
+  --context=${context} \
+  apply -f \
+  "$PROJECT_ROOT"policy/cloud-network-policy.yaml
 
-contexts=($STAGING_CLOUD_GKE_CONTEXT $DEV_CLOUD_GKE_CONTEXT)
-i=0
-for context in $STAGING_CLOUD_GKE_CONTEXT $DEV_CLOUD_GKE_CONTEXT; do
-	# applying network policy to cloud cluster to help keep traffic going where it should
-	kubectl --namespace default \
-	  --context=${context} \
-	  apply -f \
-	  "$PROJECT_ROOT"policy/cloud-network-policy.yaml
+echo "configuring cloud cluster staging environment to communicate with on-prem ES with pyrios"
 
-	echo "configuring cloud cluster staging environment to communicate with on-prem ES with pyrios"
-	# get elasticsearch service's internal load balancer IP
-
-	# todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
-	kubectl --namespace default \
+context="${STAGING_CLOUD_GKE_CONTEXT}"
+# todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
+kubectl --namespace default \
 	    --context=${context} \
 	    create configmap esconfig \
-			--from-literal=ES_SERVER="${LB_IPS[i]}" || true
-	i=i++
+			--from-literal=ES_SERVER="$LB_IP" || true
 
-	if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
-	    echo >&2 "pyrios is currently built and managed via bazel which is not installed."
-	    echo >&2 "in the future, we will try to provide fall back options using kubectl (boring!)"
-	    echo "we are not deploying pyrios right now. get your bazel on first!"
-	    exit 1
-	else
-	    echo "building and deploying pyrios and pyrios-ui"
-	    # TODO need to fix the context for the repo
-      bazel run \
-        --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-        --define cluster="${context}" \
-        --define repo="$REPO" \
-           //pyrios-ui:k8s.apply
-      bazel run \
-        --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-        --define cluster="${context}" \
-        --define repo="$REPO" \
-          //pyrios:k8s.apply
-	fi
-done
+if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
+    echo >&2 "pyrios is currently built and managed via bazel which is not installed."
+    echo >&2 "in the future, we will try to provide fall back options using kubectl (boring!)"
+    echo "we are not deploying pyrios right now. get your bazel on first!"
+    exit 1
+else
+    echo "building and deploying pyrios and pyrios-ui"
+    # TODO need to fix the context for the repo
+    bazel run \
+      --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+      --define cluster="${context}" \
+      --define repo="$REPO" \
+         //pyrios-ui:k8s.apply
+    bazel run \
+      --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+      --define cluster="${context}" \
+      --define repo="$REPO" \
+        //pyrios:k8s.apply
+fi
