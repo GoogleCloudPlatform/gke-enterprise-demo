@@ -9,6 +9,11 @@ DEBUG?=-c dbg
 # add any bazel build options here
 BAZEL_OPTIONS?=
 
+# set the cluster for override build
+CLUSTER?=
+# set the container repo for override build
+CONTAINER_REPO?=
+
 ################################################################################################
 #                      Verification/testing helpers                                            #
 ################################################################################################
@@ -214,14 +219,14 @@ bazel-deploy-dev: bazel-deploy-pyrios-dev bazel-deploy-pyrios-ui-dev
 bazel-override:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define cluster=gke_chlove-57705_us-west1-b_staging-cloud-cluster \
-		--define repo=gcr.io/chlove-57705 \
-		//pyrios-ui:override.apply
+		--define cluster=${CLUSTER} \
+		--define repo=${CONTAINER_REPO} \
+		//pyrios-ui:k8s.apply
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define cluster=gke_chlove-57705_us-west1-b_staging-cloud-cluster \
-		--define repo=gcr.io/chlove-57705 \
-		//pyrios:override.apply
+		--define cluster=${CLUSTER} \
+		--define repo=${CONTAINER_REPO} \
+		//pyrios:k8s.apply
 
 # delete your staging resources from kubernetes
 .PHONY: bazel-delete-staging
