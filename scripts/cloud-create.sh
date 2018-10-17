@@ -26,28 +26,29 @@ set -o nounset
 set -o pipefail
 
 PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
-REPO="gcr.io/$(gcloud config get-value project)"
+DEFAULT_REPO=gcr.io/$(gcloud config get-value project)
+REPO=${CONTAINER_REPO:-$DEFAULT_REPO}
 
 source "$PROJECT_ROOT"k8s.env
 
-context="${STAGING_ON_PREM_GKE_CONTEXT}"
-LB_IP=$(kubectl --namespace default --context="${context}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
-kubectl config use-context "${context}"
+CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"
+LB_IP=$(kubectl --namespace default --context="${CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
+kubectl config use-context "${CONTEXT}"
 
 # applying network policy to cloud cluster to help keep traffic going where it should
 kubectl --namespace default \
-  --context=${context} \
+  --context=${CONTEXT} \
   apply -f \
   "$PROJECT_ROOT"policy/cloud-network-policy.yaml
 
 echo "configuring cloud cluster staging environment to communicate with on-prem ES with pyrios"
 
-context="${STAGING_CLOUD_GKE_CONTEXT}"
+CONTEXT="${STAGING_CLOUD_GKE_CONTEXT}"
 # todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
 kubectl --namespace default \
-	    --context=${context} \
-	    create configmap esconfig \
-			--from-literal=ES_SERVER="$LB_IP" || true
+	--context="${CONTEXT}" \
+	create configmap esconfig \
+	--from-literal=ES_SERVER="$LB_IP" || true
 
 if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
     echo >&2 "pyrios is currently built and managed via bazel which is not installed."
@@ -59,12 +60,12 @@ else
     # TODO need to fix the context for the repo
     bazel run \
       --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-      --define cluster="${context}" \
-      --define repo="$REPO" \
+      --define cluster="${CONTEXT}" \
+      --define repo="${REPO}" \
          //pyrios-ui:k8s.apply
     bazel run \
       --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-      --define cluster="${context}" \
-      --define repo="$REPO" \
+      --define cluster="${CONTEXT}" \
+      --define repo="${REPO}" \
         //pyrios:k8s.apply
 fi

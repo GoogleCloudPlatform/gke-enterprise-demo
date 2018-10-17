@@ -47,10 +47,12 @@ k8s_defaults(
 k8s_defaults(
     name = "k8s_deploy",
     kind = "deployment",
+    namespace = "default",
 )
 
 [k8s_defaults(
     name = "k8s_" + kind,
+    namespace = "default",
     kind = kind,
 ) for kind in [
     "service",

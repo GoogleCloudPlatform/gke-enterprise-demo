@@ -118,11 +118,11 @@ configure:
 # todo: migrate this to bazel. (pyrios and ui)
 .PHONY: create
 create:
-	$(ROOT)/scripts/create.sh
+	CONTAINER_REPO=${CONTAINER_REPO} $(ROOT)/scripts/create.sh
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
-.PHONY: expose-staging
-expose-staging:
+.PHONY: expose
+expose:
 	$(ROOT)/scripts/expose-staging.sh
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
@@ -266,3 +266,7 @@ deploy:
 	kubectl apply -f pyrios/manifests/
 	kubectl apply -f pyrios-ui/manifests/
 
+# wait on the pytios deployment to launch
+.PHONY: wait-on-pyrios
+wait-on-pyrios:
+	$(ROOT)/scripts/wait-on-pyrios.sh
