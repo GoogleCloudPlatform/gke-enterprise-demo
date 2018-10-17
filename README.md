@@ -168,7 +168,7 @@ gke-on-prem-cluster-f1-pvc-bcc115d6-6472-11e8-a9b6-42010a800140  us-west1  regio
 
 This demo has been tested with macOS and Cloud Shell.
 
-You can obtain a [free trial of GCP](https://cloud.google.com/free/) if you need one
+If you don't already have GCP account, [click here](https://cloud.google.com/free/) to get started with $300 of GCP credits.
 
 ## Configure gcloud
 

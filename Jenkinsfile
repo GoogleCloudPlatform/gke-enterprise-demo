@@ -33,7 +33,7 @@ metadata:
 spec:
   containers:
   - name: k8s-node
-    image: gcr.io/pso-helmsman-cicd/jenkins-k8s-node:1.0.1
+    image: gcr.io/pso-helmsman-cicd/jenkins-k8s-node:1.1.0
     imagePullPolicy: Always
     command:
     - cat
@@ -113,7 +113,7 @@ spec:
     stage('Create') {
       steps {
         container('k8s-node') {
-            sh "make config"
+            sh "make configure"
             sh "make create"
         }
       }
@@ -143,7 +143,7 @@ spec:
               env.TF_VAR_shared_secret = "cicd"
           }
           // This will create k8s.env which contains context names
-          sh "make config"
+          sh "make configure"
           // This will destroy all of the resources created in this demo
           sh "make teardown"
       }

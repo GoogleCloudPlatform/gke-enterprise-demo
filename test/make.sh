@@ -93,7 +93,7 @@ function check_trailing_whitespace() {
   echo "Checking trailing whitespace"
   # get a list of our files in git and print out what needs to change (with line numbers)
 
-  if [[ "$( grep -Inr '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" . | wc -l )" -gt 0  ]]; then
+  if [[ "$( grep -Inr -c '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" . )" -gt 0  ]]; then
     echo "Files with extra whitespace detected"
     grep -Inr '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" .
     exit 1
