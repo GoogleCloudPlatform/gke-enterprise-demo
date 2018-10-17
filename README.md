@@ -20,6 +20,9 @@
 * [Troubleshooting](#troubleshooting)
 * [Relevant Material](#relevant-material)
 
+## Current Status
+
+This repo is under heavy development right now.  Apologize for our dust as we do a major refactor.
 
 ## Introduction
 [Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) has made
