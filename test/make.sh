@@ -90,15 +90,10 @@ function check_shell() {
 # in any files in the project.
 # There are some exclusions
 function check_trailing_whitespace() {
-  echo "Checking trailing whitespace"
-  # get a list of our files in git and print out what needs to change (with line numbers)
-
-  if [[ "$( grep -Inr '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" . | wc -l )" -gt 0  ]]; then
-    echo "Files with extra whitespace detected"
-    grep -Inr '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" .
+  echo "The following lines have trailing whitespace"
+  grep -r '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude="tfplan" --exclude-dir=".git" --exclude-dir="bazel-*"  .
+  rc=$?
+  if [ $rc = 0 ]; then
     exit 1
-  else
-    echo " > Trailing whitespace conforms to spec"
-    echo ""
   fi
 }
