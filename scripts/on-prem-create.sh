@@ -49,11 +49,9 @@ fi
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-discovery-svc.yaml
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-svc.yaml
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-master.yaml
-kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-master.yaml
 
 # roll out client nodes related objects, client depends on the master nodes
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-client.yaml
-kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-client.yaml
 
 # roll out rbac for data nodes
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/service-account.yaml
@@ -65,10 +63,15 @@ kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-d
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-data-sc.yaml
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/configmap.yaml
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-data-stateful.yaml
-kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-data-stateful.yaml
 
 # roll out pdb for master and data nodes
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-master-pdb.yaml
 kubectl --namespace default apply -f "$PROJECT_ROOT"elasticsearch/manifests/es-data-pdb.yaml
 
+# install network policy
 kubectl --namespace default apply -f "$PROJECT_ROOT"policy/on-prem-network-policy.yaml
+
+# validate that the cluster has rolled out properly
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-master.yaml
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-client.yaml 
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-data-stateful.yaml 
