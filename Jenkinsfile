@@ -33,7 +33,7 @@ metadata:
 spec:
   containers:
   - name: k8s-node
-    image: gcr.io/pso-helmsman-cicd/jenkins-k8s-node:1.0.1
+    image: gcr.io/pso-helmsman-cicd/jenkins-k8s-node:1.1.0
     imagePullPolicy: Always
     command:
     - cat
@@ -113,8 +113,26 @@ spec:
     stage('Create') {
       steps {
         container('k8s-node') {
-            sh "make config"
-            sh "make create"
+            // setup the cluster k8s file
+            sh "make configure"
+            // configure docker so that bazel can upload files
+            sh "gcloud auth configure-docker --quiet"
+            // create es cluster and run bazel
+            // we set the repo to use since the cluster is running in a different project
+            sh "CONTAINER_REPO=gcr.io/pso-helmsman-cicd-infra make create"
+        }
+      }
+    }
+
+    stage('Load Data') {
+      steps {
+        container('k8s-node') {
+            // wait till the pyrios deployment is up
+            sh "make wait-on-pyrios"
+            // This will port-forward to the pyrios pod on port 9200
+            sh "make expose"
+            // This will use the local port 9200 to load data into Elasticsearch
+            sh "make load"
         }
       }
     }
@@ -122,12 +140,7 @@ spec:
     stage('Test') {
       steps {
         container('k8s-node') {
-            // This will port-forward to the pyrios pod on port 9200
-            sh "make expose"
-            // This will use the local port 9200 to load data into Elasticsearch
-            sh "make load"
-            // This will use local port 9200 to validate that the loaded data
-            // is correct
+            // validate the cluster
             sh "make validate"
         }
       }
@@ -143,7 +156,7 @@ spec:
               env.TF_VAR_shared_secret = "cicd"
           }
           // This will create k8s.env which contains context names
-          sh "make config"
+          sh "make configure"
           // This will destroy all of the resources created in this demo
           sh "make teardown"
       }

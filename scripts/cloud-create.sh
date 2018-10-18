@@ -26,34 +26,45 @@ set -o nounset
 set -o pipefail
 
 PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
+DEFAULT_REPO=gcr.io/$(gcloud config get-value project)
+REPO=${CONTAINER_REPO:-$DEFAULT_REPO}
 
 source "$PROJECT_ROOT"k8s.env
 
-contexts=($STAGING_CLOUD_GKE_CONTEXT $DEV_CLOUD_GKE_CONTEXT)
-for context in $contexts; do
-	# applying network policy to cloud cluster to help keep traffic going where it should
-	kubectl --namespace default apply -f "$PROJECT_ROOT"policy/cloud-network-policy.yaml
+CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"
+LB_IP=$(kubectl --namespace default --context="${CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
+kubectl config use-context "${CONTEXT}"
 
-	echo "configuring cloud cluster staging environment to communicate with on-prem ES with pyrios"
-	# get elasticsearch service's internal load balancer IP
+# applying network policy to cloud cluster to help keep traffic going where it should
+kubectl --namespace default \
+  --context=${CONTEXT} \
+  apply -f \
+  "$PROJECT_ROOT"policy/cloud-network-policy.yaml
 
-	LB_IP=$(kubectl --namespace default --context="${STAGING_ON_PREM_GKE_CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
-	kubectl config use-context "${STAGING_CLOUD_GKE_CONTEXT}"
-	echo "LB_IP=$LB_IP"
+echo "configuring cloud cluster staging environment to communicate with on-prem ES with pyrios"
 
-	# todo: make a manifest for this command and apply -f it so can be updated
-	# todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
-	kubectl --namespace default create configmap esconfig \
-			--from-literal=ES_SERVER="${LB_IP}" || true
+CONTEXT="${STAGING_CLOUD_GKE_CONTEXT}"
+# todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
+kubectl --namespace default \
+	--context="${CONTEXT}" \
+	create configmap esconfig \
+	--from-literal=ES_SERVER="$LB_IP" || true
 
-	if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
-		echo >&2 "pyrios is currently built and managed via bazel which is not installed."
-	    echo >&2 "in the future, we will try to provide fall back options using kubectl (boring!)"
-	    echo "we are not deploying pyrios right now. get your bazel on first!"
-	    exit 1
-	else
-	    echo "building and deploying pyrios and pyrios-ui"
-		bazel run //pyrios:staging.apply
-		bazel run //pyrios-ui:staging.apply
-	fi
-done
+if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
+    echo >&2 "pyrios is currently built and managed via bazel which is not installed."
+    echo >&2 "in the future, we will try to provide fall back options using kubectl (boring!)"
+    echo "we are not deploying pyrios right now. get your bazel on first!"
+    exit 1
+else
+    echo "building and deploying pyrios and pyrios-ui"
+    bazel run \
+      --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+      --define cluster="${CONTEXT}" \
+      --define repo="${REPO}" \
+         //pyrios-ui:k8s.apply
+    bazel run \
+      --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+      --define cluster="${CONTEXT}" \
+      --define repo="${REPO}" \
+        //pyrios:k8s.apply
+fi

@@ -1,3 +1,21 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Make will use bash instead of sh
+SHELL := /usr/bin/env bash
+
+# google cloud project
 PROJECT:=$(shell gcloud config get-value core/project)
 ROOT:=.
 
@@ -8,6 +26,11 @@ DEBUG?=-c dbg
 
 # add any bazel build options here
 BAZEL_OPTIONS?=
+
+# set the cluster for override build
+CLUSTER?=
+# set the container repo for override build
+CONTAINER_REPO?=
 
 ################################################################################################
 #                      Verification/testing helpers                                            #
@@ -92,14 +115,13 @@ configure:
 	$(ROOT)/scripts/configure.sh
 
 # 4: Deploys kubernetes resources. ie: elasticsearch, pyrios and pyrios-ui
-# todo: migrate this to bazel. (pyrios and ui)
 .PHONY: create
 create:
-	$(ROOT)/scripts/create.sh
+	CONTAINER_REPO=${CONTAINER_REPO} $(ROOT)/scripts/create.sh
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
-.PHONY: expose-staging
-expose-staging:
+.PHONY: expose
+expose:
 	$(ROOT)/scripts/expose-staging.sh
 
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
@@ -214,8 +236,14 @@ bazel-deploy-dev: bazel-deploy-pyrios-dev bazel-deploy-pyrios-ui-dev
 bazel-override:
 	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
 		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-		--define cluster=gke-override --define repo=gcr.io/override \
-		//pyrios-ui:dev.apply
+		--define cluster=${CLUSTER} \
+		--define repo=${CONTAINER_REPO} \
+		//pyrios-ui:k8s.apply
+	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
+		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+		--define cluster=${CLUSTER} \
+		--define repo=${CONTAINER_REPO} \
+		//pyrios:k8s.apply
 
 # delete your staging resources from kubernetes
 .PHONY: bazel-delete-staging
@@ -237,3 +265,7 @@ deploy:
 	kubectl apply -f pyrios/manifests/
 	kubectl apply -f pyrios-ui/manifests/
 
+# wait on the pytios deployment to launch
+.PHONY: wait-on-pyrios
+wait-on-pyrios:
+	$(ROOT)/scripts/wait-on-pyrios.sh
