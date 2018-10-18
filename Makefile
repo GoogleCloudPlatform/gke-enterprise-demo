@@ -124,11 +124,6 @@ create:
 expose:
 	$(ROOT)/scripts/expose-staging.sh
 
-# 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
-.PHONY: expose-dev
-expose-dev:
-	$(ROOT)/scripts/expose-dev.sh
-
 # 6: Seeds the demo data via the proxy exposed in 5
 .PHONY: load
 load:
@@ -148,11 +143,6 @@ close-expose:
 .PHONY: expose-ui-staging
 expose-ui-staging:
 	$(ROOT)/scripts/expose-ui-staging.sh
-
-# 8: Expose the pyrios UI so that you can navigate to the site on localhost:8080
-.PHONY: expose-ui-dev
-expose-ui-dev:
-	$(ROOT)/scripts/expose-ui-dev.sh
 
 # The elasticsearch portion of the demo is complete. You're welcome to tear
 # down your infrastructure right now, or if you skip the teardown, you can
@@ -218,19 +208,6 @@ bazel-deploy-pyrios-ui-staging:
 .PHONY: bazel-deploy-staging
 bazel-deploy-staging: bazel-deploy-pyrios-staging bazel-deploy-pyrios-ui-staging
 
-.PHONY: bazel-deploy-pyrios-dev
-bazel-deploy-pyrios-dev:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //pyrios:dev.apply
-
-.PHONY: bazel-deploy-pyrios-ui-dev
-bazel-deploy-pyrios-ui-dev:
-	bazel run ${BAZEL_OPTIONS} ${DEBUG} \
-		--platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //pyrios-ui:dev.apply
-
-.PHONY: bazel-deploy-dev
-bazel-deploy-dev: bazel-deploy-pyrios-dev bazel-deploy-pyrios-ui-dev
-
 
 .PHONY: bazel-override
 bazel-override:
@@ -249,11 +226,6 @@ bazel-override:
 .PHONY: bazel-delete-staging
 bazel-delete-staging:
 	bazel run ${BAZEL_OPTIONS} //pyrios:staging.delete 	//pyrios-ui:staging.delete
-
-# delete your dev resources from kubernetes
-.PHONY: bazel-delete-dev
-bazel-delete-dev:
-	bazel run ${BAZEL_OPTIONS} //pyrios:dev.delete //pyrios-ui:dev.delete
 
 ################################################################################################
 #                                 kubernetes helpers                                           #
