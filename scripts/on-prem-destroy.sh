@@ -28,25 +28,24 @@ PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
 
 source "$PROJECT_ROOT"k8s.env
 
-contexts=($STAGING_ON_PREM_GKE_CONTEXT $DEV_ON_PREM_GKE_CONTEXT)
-for context in $contexts; do
-	# try to set context to on-prem cluster. if we can't set that context, we can't do anything else
-	# in this file, so we can exit
-	if [[ ! $(kubectl config use-context "$context") ]]; then
-		echo "on-prem cluster was not found; skipping cluster teardown"
-		exit 1
-	fi
+context="${STAGING_ON_PREM_GKE_CONTEXT}"
+# try to set context to on-prem cluster. if we can't set that context, we can't do anything else
+# in this file, so we can exit
 
-	# You have to wait the default pod grace period before you can delete the pvcs
-	grace=$(kubectl --namespace default get sts -l component=elasticsearch,role=data -o jsonpath='{..terminationGracePeriodSeconds}')
-	kubectl --namespace default delete -f "$PROJECT_ROOT"elasticsearch/manifests/ || true
-	kubectl --namespace default delete -f "$PROJECT_ROOT"policy/on-prem-network-policy.yaml || true
+if [[ ! $(kubectl config use-context "$context") ]]; then
+	echo "on-prem cluster was not found; skipping cluster teardown"
+	exit 1
+fi
 
-	echo "Sleeping ${grace} seconds before deleting PVCs. The default pod grace period."
-	sleep "${grace}"
+# You have to wait the default pod grace period before you can delete the pvcs
+grace=$(kubectl --namespace default get sts -l component=elasticsearch,role=data -o jsonpath='{..terminationGracePeriodSeconds}')
+kubectl --namespace default delete -f "$PROJECT_ROOT"elasticsearch/manifests/ || true
+kubectl --namespace default delete -f "$PROJECT_ROOT"policy/on-prem-network-policy.yaml || true
 
-	# Deleting and/or scaling a StatefulSet down will not delete the volumes associated with the StatefulSet.
-	# This is done to ensure data safety, which is generally more valuable
-	# than an automatic purge of all related StatefulSet resources.
-	kubectl --namespace default delete pvc -l component=elasticsearch,role=data || true
-done
+echo "Sleeping ${grace} seconds before deleting PVCs. The default pod grace period."
+sleep "${grace}"
+
+# Deleting and/or scaling a StatefulSet down will not delete the volumes associated with the StatefulSet.
+# This is done to ensure data safety, which is generally more valuable
+# than an automatic purge of all related StatefulSet resources.
+kubectl --namespace default delete pvc -l component=elasticsearch,role=data || true

@@ -75,7 +75,5 @@ command -v kubectl >/dev/null 2>&1 || { \
 
 STAGING_CLOUD_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*staging-cloud-cluster")
 STAGING_ON_PREM_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*staging-on-prem-cluster")
-DEV_CLOUD_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*dev-cloud-cluster")
-DEV_ON_PREM_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*dev-on-prem-cluster")
 
 EOF
