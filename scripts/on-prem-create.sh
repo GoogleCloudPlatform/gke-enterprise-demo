@@ -73,5 +73,5 @@ kubectl --namespace default apply -f "$PROJECT_ROOT"policy/on-prem-network-polic
 
 # validate that the cluster has rolled out properly
 kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-master.yaml
-kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-client.yaml 
-kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-data-stateful.yaml 
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-client.yaml
+kubectl --namespace default rollout status -f "$PROJECT_ROOT"elasticsearch/manifests/es-data-stateful.yaml
