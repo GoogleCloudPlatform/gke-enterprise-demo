@@ -19,7 +19,7 @@
 
 # "---------------------------------------------------------"
 # "-                                                       -"
-# "-  port-forward to pyrios pod of the cloud GKE cluster  -"
+# "-  test that pyrios pod of the cloud GKE cluster has started  -"
 # "-                                                       -"
 # "---------------------------------------------------------"
 
