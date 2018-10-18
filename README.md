@@ -1,4 +1,4 @@
-# Kubernetes Engine Enterprise Best Practices
+# Kubernetes Engine Enterprise Demo
 
 * [Introduction](#introduction)
 * [Architecture](#architecture)
