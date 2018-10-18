@@ -57,7 +57,6 @@ if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
     exit 1
 else
     echo "building and deploying pyrios and pyrios-ui"
-    # TODO need to fix the context for the repo
     bazel run \
       --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
       --define cluster="${CONTEXT}" \

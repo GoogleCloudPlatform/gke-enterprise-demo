@@ -115,7 +115,6 @@ configure:
 	$(ROOT)/scripts/configure.sh
 
 # 4: Deploys kubernetes resources. ie: elasticsearch, pyrios and pyrios-ui
-# todo: migrate this to bazel. (pyrios and ui)
 .PHONY: create
 create:
 	CONTAINER_REPO=${CONTAINER_REPO} $(ROOT)/scripts/create.sh
