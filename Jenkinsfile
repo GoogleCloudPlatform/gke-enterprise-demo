@@ -72,6 +72,8 @@ spec:
   stage('Linting') {
     steps {
       container('k8s-node') {
+          // setup the cluster k8s file for linting
+          sh "make configure"
           // This will run all of our source code linting
           sh "make lint"
         }
