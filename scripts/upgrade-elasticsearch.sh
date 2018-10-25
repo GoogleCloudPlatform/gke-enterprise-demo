@@ -23,7 +23,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 fail() {
   echo "ERROR: ${*}"
@@ -51,7 +51,7 @@ command -v kubectl >/dev/null || fail "kubectl is not installed!"
 command -v jq >/dev/null || fail "jq is not installed!"
 
 # shellcheck source=./k8s.env
-source "$PROJECT_ROOT"k8s.env
+source "$PROJECT_ROOT"/k8s.env
 
 # disable_shard_allocation() - Sets the cluster.routing.allocation.enable
 # setting to "none".  Prevents shards from being migrated from an upgrading
@@ -98,7 +98,7 @@ update_deployment() {
   echo "Updgrading the ${NAME} Deployment to version ${VERSION}..."
   # kubectl patch can be used to update resource objects
   # https://kubernetes.io/docs/tasks/run-application/update-api-object-kubectl-patch/
-  kubectl patch deployment "${NAME}" \
+  kubectl --namespace default patch deployment "${NAME}" \
     -p '{"spec":{"template":{"spec":{"containers":[{"name":"'"${NAME}"'","image":"quay.io/pires/docker-elasticsearch-kubernetes:'"${VERSION}"'"}]}}}}'
   # Monitor the upgrade as it progresses
   kubectl rollout status deployment "${NAME}"
@@ -177,23 +177,23 @@ update_statefulset() {
   # Patch updateStrategy to 'OnDelete'.  We can't use 'OnDelete' initially
   # because this bug breaks our on-prem-create.sh script:
   # https://github.com/kubernetes/kubernetes/issues/64500√
-  kubectl patch statefulset "${NAME}" -p \
+  kubectl --namespace default patch statefulset "${NAME}" -p \
     '{"spec":{"updateStrategy":{"type":"OnDelete"}}}' || true
 
   echo "Updating the ${NAME} Statefulset to Elasticsearch version ${VERSION}..."
-  kubectl patch statefulset "${NAME}" -p \
+  kubectl --namespace default patch statefulset "${NAME}" -p \
     '{"spec":{"template":{"spec":{"containers":[{"name":"'"${NAME}"'","image":"quay.io/pires/docker-elasticsearch-kubernetes:'"${VERSION}"'"}]}}}}' || true
 
   # For a statefulset with 3 replicas, this will loop three times wth the
   # 'ORDINAL' values 2, 1, and 0
-  REPLICAS=$(kubectl get statefulset "${NAME}" -o jsonpath='{.spec.replicas}')
+  REPLICAS=$(kubectl --namespace default get statefulset "${NAME}" -o jsonpath='{.spec.replicas}')
   MAX_ORDINAL=$(( REPLICAS - 1 ))
   for ORDINAL in $(seq "${MAX_ORDINAL}" 0); do
 
     CURRENT_POD="${NAME}-${ORDINAL}"
     echo "Updating ${CURRENT_POD}"
 
-    kubectl delete pod "${CURRENT_POD}"
+    kubectl --namespace default delete pod "${CURRENT_POD}"
 
     # Give some time for the es java process to terminate and the cluster state
     # to turn 'yellow'
@@ -216,7 +216,7 @@ update() {
   NEW_VERSION=$1
 
   echo "Setting up the port forward to Elasticsearch client..."
-  kubectl port-forward svc/elasticsearch 9200 1>&2 >/dev/null &
+  kubectl --namespace default port-forward svc/elasticsearch 9200 1>&2 >/dev/null &
   # The port-forward is non-blocking, so wait a few seconds
   sleep 5
 
@@ -233,7 +233,7 @@ update() {
 
   # Post update cleanup
   echo "Re-establish port-forward"
-  kubectl port-forward svc/elasticsearch 9200 1>&2 >/dev/null &
+  kubectl --namespace default port-forward svc/elasticsearch 9200 1>&2 >/dev/null &
   # The port-forward is non-blocking, so wait a few seconds
   sleep 5
 

@@ -25,30 +25,33 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 DEFAULT_REPO=gcr.io/$(gcloud config get-value project)
 REPO=${CONTAINER_REPO:-$DEFAULT_REPO}
 
-source "$PROJECT_ROOT"k8s.env
+# shellcheck source=k8s.env
+source "$PROJECT_ROOT"/k8s.env
 
 CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"
 LB_IP=$(kubectl --namespace default --context="${CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
 kubectl config use-context "${CONTEXT}"
 
 # applying network policy to cloud cluster to help keep traffic going where it should
-kubectl --namespace default \
-  --context=${CONTEXT} \
+kubectl  \
+  --namespace default \
+  --context="${CONTEXT}" \
   apply -f \
-  "$PROJECT_ROOT"policy/cloud-network-policy.yaml
+  "$PROJECT_ROOT/"policy/cloud-network-policy.yaml
 
 echo "configuring cloud cluster staging environment to communicate with on-prem ES with pyrios"
 
 CONTEXT="${STAGING_CLOUD_GKE_CONTEXT}"
 # todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
-kubectl --namespace default \
-	--context="${CONTEXT}" \
-	create configmap esconfig \
-	--from-literal=ES_SERVER="$LB_IP" || true
+kubectl  \
+  --namespace default \
+  --context="${CONTEXT}" \
+  create configmap esconfig \
+  --from-literal=ES_SERVER="$LB_IP" || true
 
 if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
     echo >&2 "pyrios is currently built and managed via bazel which is not installed."

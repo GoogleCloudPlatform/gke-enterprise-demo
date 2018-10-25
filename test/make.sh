@@ -32,58 +32,46 @@ done;
 # releasing to OSS are present
 function basefiles() {
   echo "Checking for required files"
-
   test -f CONTRIBUTING.md || echo "Missing CONTRIBUTING.md"
   test -f LICENSE || echo "Missing LICENSE"
   test -f README.md || echo "Missing README.md"
-
-  if ! [ "$( test -f CONTRIBUTING.md && test -f LICENSE && test -f README.md )" ]; then
-    echo " > All Required OSS files were found"
-    echo ""
-  fi
 }
 
 # This function runs the hadolint linter on
 # every file named 'Dockerfile'
 function docker() {
-  echo "Linting Dockerfiles"
-  if ! [[ "$( find . -name "Dockerfile" -exec hadolint {} \; )" ]]; then
-    echo "dockerfiles conform to spec"
-    echo ""
-  fi
+  echo "Running hadolint on Dockerfiles"
+  find . -name "Dockerfile" -exec hadolint {} \;
 }
 
-# This function --include=runs 'terraform validate' against all
+# This function runs 'terraform validate' against all
 # files ending in '.tf'
 function check_terraform() {
   echo "Running terraform validate"
   #shellcheck disable=SC2156
-  if ! [[ "$(find . -name "*.tf" -exec bash -c 'terraform validate --check-variables=false $(dirname "{}")' \;)" ]]; then
-    echo " > terraform code conforms to spec"
-    echo ""
-  fi
+  find . -name "*.tf" -exec bash -c 'terraform validate --check-variables=false $(dirname "{}")' \;
+}
+
+# This function runs 'go fmt' and 'go vet' on eery file
+# that ends in '.go'
+function golang() {
+  echo "Running go fmt and go vet"
+  find . -name "*.go" -exec go fmt {} \;
+  find . -name "*.go" -exec go vet {} \;
 }
 
 # This function runs the flake8 linter on every file
 # ending in '.py'
 function check_python() {
   echo "Running flake8"
-  if [[ "$( find . -not -path "bazel-*" -name "*.py" -exec flake8 {} \; )" ]]; then
-    echo " > python code conforms to spec"
-    echo ""
-  fi
+  find . -name "*.py" -exec flake8 {} \;
 }
 
 # This function runs the shellcheck linter on every
 # file ending in '.sh'
 function check_shell() {
   echo "Running shellcheck"
-  if ! [[ "$( grep -rli --exclude=Makefile --exclude-dir=.git --exclude-dir=.terraform --exclude-dir=bazel-*  --exclude-dir=.idea  "/*.sh$/" . | xargs shellcheck -x )" ]]; then
-    echo " > Shell files conform to spec"
-    echo ""
-  else
-    grep -rli --exclude-dir=.git --exclude-dir=.terraform --exclude-dir=bazel-*  --exclude-dir=.idea "/*.sh$/" . | xargs shellcheck -x
-  fi
+  find . -name "*.sh" -exec shellcheck -x {} \;
 }
 
 # This function makes sure that there is no trailing whitespace
@@ -91,7 +79,7 @@ function check_shell() {
 # There are some exclusions
 function check_trailing_whitespace() {
   echo "The following lines have trailing whitespace"
-  grep -r '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude="tfplan" --exclude-dir=".git" --exclude-dir="bazel-*"  .
+  grep -r '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude-dir="bazel-*" --exclude="*.pyc" --exclude="tfplan" --exclude="*.swp" .
   rc=$?
   if [ $rc = 0 ]; then
     exit 1

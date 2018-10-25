@@ -27,14 +27,15 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-source "$PROJECT_ROOT"k8s.env
+# shellcheck source=k8s.env
+source "$PROJECT_ROOT/"k8s.env
 
 echo "kubectl uses ${STAGING_CLOUD_GKE_CONTEXT}"
 kubectl config use-context "${STAGING_CLOUD_GKE_CONTEXT}"
 # look up the pyrios-ui pod id by the label app=pyrios-ui
-POD_ID=$(kubectl get pods -l app=pyrios-ui -o jsonpath='{.items[*].metadata.name}')
+POD_ID=$(kubectl --namespace default get pods -l app=pyrios-ui -o jsonpath='{.items[*].metadata.name}')
 # set up port forwarding from the laptop/desktop to the pyrios-ui pod
 # so that we can talk to pyrios
-kubectl port-forward "${POD_ID}" 8080:8080
+kubectl --namespace default port-forward "${POD_ID}" 8080:8080

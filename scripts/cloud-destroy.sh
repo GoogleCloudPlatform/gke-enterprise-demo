@@ -23,24 +23,31 @@
 
 set -o errexit
 
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
-
+# shellcheck source=k8s.env
 source "$PROJECT_ROOT"/k8s.env
 
-context="${STAGING_CLOUD_GKE_CONTEXT}"
+CONTEXT="${STAGING_CLOUD_GKE_CONTEXT}"
 # try to set context to cloud cluster. if we can't set that context, we can't do anything else
 # in this file, so we can exit
-if [[ ! $(kubectl config use-context "$context") ]]; then
+if [[ ! $(kubectl config use-context "$CONTEXT") ]]; then
 	echo "cloud cluster was not found; skipping cluster teardown"
 	exit 1
 fi
 
 # delete k8s resources
-# todo: check for bazel and if doesn't exist, echo logs that say we're going to use kubectl with the static manifests
-# todo: use bazel
-kubectl --namespace default delete -f pyrios/manifests
-kubectl --namespace default delete -f pyrios-ui/manifests
+bazel run \
+  --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+  --define cluster="${CONTEXT}" \
+  --define repo="${REPO}" \
+         //pyrios-ui:k8s.delete
+bazel run \
+  --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+  --define cluster="${CONTEXT}" \
+  --define repo="${REPO}" \
+  //pyrios:k8s.delete
+
 # delete config map
 kubectl --namespace default delete configmap esconfig
 # delete network policy

@@ -27,8 +27,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]}")/../
-source "$PROJECT_ROOT"k8s.env
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+# shellcheck source=k8s.env
+source "$PROJECT_ROOT"/k8s.env
 
 echo "kubectl using ${STAGING_CLOUD_GKE_CONTEXT}"
 kubectl config use-context "${STAGING_CLOUD_GKE_CONTEXT}"
@@ -37,4 +38,4 @@ POD_ID=$(kubectl --namespace default get pods -l app=pyrios -o jsonpath='{.items
 # set up port forwarding from the laptop/desktop to the pyrios pod
 # so that we can talk to the Elasticsearch on prem ILB (internal load balancer)
 # via pyrios pod
-kubectl --namespace default port-forward "${POD_ID}" 9200:9200 &
+kubectl  --namespace default port-forward "${POD_ID}" 9200:9200 &
