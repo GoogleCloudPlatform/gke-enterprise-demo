@@ -53,21 +53,13 @@ kubectl  \
   create configmap esconfig \
   --from-literal=ES_SERVER="$LB_IP" || true
 
-if [[ "$(command -v bazel >/dev/null 2>&1 )" ]] ; then
-    echo >&2 "pyrios is currently built and managed via bazel which is not installed."
-    echo >&2 "in the future, we will try to provide fall back options using kubectl (boring!)"
-    echo "we are not deploying pyrios right now. get your bazel on first!"
-    exit 1
-else
-    echo "building and deploying pyrios and pyrios-ui"
-    bazel run \
-      --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-      --define cluster="${CONTEXT}" \
-      --define repo="${REPO}" \
-         //pyrios-ui:k8s.apply
-    bazel run \
-      --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
-      --define cluster="${CONTEXT}" \
-      --define repo="${REPO}" \
-        //pyrios:k8s.apply
-fi
+bazel run \
+  --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+  --define cluster="${CONTEXT}" \
+  --define repo="${REPO}" \
+  //pyrios-ui:k8s.apply
+bazel run \
+  --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
+  --define cluster="${CONTEXT}" \
+  --define repo="${REPO}" \
+  //pyrios:k8s.apply
