@@ -20,7 +20,6 @@
 * [Troubleshooting](#troubleshooting)
 * [Relevant Material](#relevant-material)
 
-
 ## Introduction
 [Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) has made
 the process of administering a k8s cluster extremely simple and allows teams to focus on
