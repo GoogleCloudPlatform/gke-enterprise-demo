@@ -169,6 +169,21 @@ This demo has been tested with macOS and Cloud Shell.
 
 You can obtain a [free trial of GCP](https://cloud.google.com/free/) if you need one
 
+#### Install Cloud SDK
+The Google Cloud SDK is used to interact with your GCP resources.
+[Installation instructions](https://cloud.google.com/sdk/downloads) for multiple platforms are available online.
+
+#### Install kubectl CLI
+
+The kubectl CLI is used to interteract with both Kubernetes Engine and kubernetes in general.
+[Installation instructions](https://cloud.google.com/kubernetes-engine/docs/quickstart)
+for multiple platforms are available online.
+
+#### Install Terraform
+
+Terraform is used to automate the manipulation of cloud infrastructure. Its
+[installation instructions](https://www.terraform.io/intro/getting-started/install.html) are also available online.
+
 ## Configure gcloud
 
 Before running any commands, configure gcloud with the project you wish
