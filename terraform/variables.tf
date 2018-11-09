@@ -63,3 +63,7 @@ variable "on_prem" {
     machine_type      = "n1-standard-2"
   }
 }
+
+variable "gke_master_version" {
+  default = "1.9.7-gke.7"
+}
