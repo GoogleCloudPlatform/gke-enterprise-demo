@@ -300,6 +300,22 @@ deployment.apps/es-master created
 Waiting for deployment "es-master" rollout to finish: 0 of 3 updated replicas are available...
 ```
 
+### What just happened?
+
+With `make terraform` you setup the infrastructure needed to run this demo's applications, specifically a couple of Compute instances and a couple Kubernetes clusters. However, you didn't yet have any pods deployed to those clusters. With `make create`, you leveraged [Bazel](https://www.bazel.build/) to do the following for each `pyrios` and `pyrios-ui`:
+
+1. Build the go binary, and build & register a container with `go_image`
+	* Uses the [Docker rules for Bazel](https://github.com/bazelbuild/rules_docker)
+2. Deploy the pod deployment & service to your Kubernetes cluster 
+	* Uses the [k8s rules for Bazel](https://github.com/bazelbuild/rules_k8s)
+
+See the script invoking Bazel and the Bazel build file itself for each of the applications:
+
+* [scripts/cloud-create.sh](scripts/cloud-create.sh)
+* [pyrios-ui/BUILD.bazel](pyrios-ui/BUILD.bazel)
+* [scripts/on-prem-create.sh](scripts/on-prem-create.sh)
+* [pyrios/BUILD.bazel](pyrios/BUILD.bazel)
+
 ## Expose the `pyrios` Pod
 
 We need to make the `pyrios` pod accessible so that we can load sample
