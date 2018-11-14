@@ -65,5 +65,5 @@ variable "on_prem" {
 }
 
 variable "gke_master_version" {
-  default = "1.9.7-gke.7"
+  default = "latest"
 }
