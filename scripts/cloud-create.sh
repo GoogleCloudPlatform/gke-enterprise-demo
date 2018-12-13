@@ -33,9 +33,10 @@ REPO=${CONTAINER_REPO:-$DEFAULT_REPO}
 source "$PROJECT_ROOT"/k8s.env
 
 CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"
-LB_IP=$(kubectl --namespace default --context="${CONTEXT}" get svc -l component=elasticsearch,role=client -o jsonpath='{..ip}')
+LB_IP=$(kubectl --namespace default --context="${CONTEXT}" get svc -l component=elasticsearch,role=ingest -o jsonpath='{..ip}')
 kubectl config use-context "${CONTEXT}"
 
+CONTEXT="${STAGING_CLOUD_GKE_CONTEXT}"
 # applying network policy to cloud cluster to help keep traffic going where it should
 kubectl  \
   --namespace default \
@@ -45,7 +46,6 @@ kubectl  \
 
 echo "configuring cloud cluster staging environment to communicate with on-prem ES with pyrios"
 
-CONTEXT="${STAGING_CLOUD_GKE_CONTEXT}"
 # todo: (i think we need to move this configmap into bazel. possibly template with {j,k}sonnet but not require)
 kubectl  \
   --namespace default \

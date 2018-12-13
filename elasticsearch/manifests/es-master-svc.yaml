@@ -12,22 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# Service for elasticsearch master discovery
-# https://kubernetes.io/docs/concepts/services-networking/service/
-#
 apiVersion: v1
 kind: Service
 metadata:
-  name: elasticsearch-discovery
+  name: elasticsearch-master
   labels:
     component: elasticsearch
     role: master
 spec:
+  ports:
+  - port: 9300
+    name: transport
+  clusterIP: None
   selector:
     component: elasticsearch
     role: master
-  ports:
-  - name: transport
-    port: 9300
-    protocol: TCP
