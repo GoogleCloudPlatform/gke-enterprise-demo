@@ -35,16 +35,16 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 # Load the index mapping
 echo "Loading the index into the Elasticsearch cluster"
-curl http://localhost:9200/shakespeare \
+curl "http://localhost:9200/shakespeare" \
+  -s \
   -H "Content-Type: application/json" \
   -X PUT \
   -d @"$PROJECT_ROOT"/elasticsearch/data/mappings.json
 
-echo
-
 echo "Loading the data into the Elasticsearch cluster"
-curl -s 'http://localhost:9200/shakespeare/doc/_bulk?pretty' \
+curl "http://localhost:9200/shakespeare/doc/_bulk" \
+   -s \
    -H "Content-Type: application/x-ndjson" \
    -X POST \
-   --data-binary @"$PROJECT_ROOT"/elasticsearch/data/shakespeare_6.0.json \
-   -o /dev/null
+   --data-binary @"$PROJECT_ROOT"/elasticsearch/data/shakespeare_6.0.json
+
