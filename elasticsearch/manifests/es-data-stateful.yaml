@@ -50,14 +50,6 @@ spec:
           privileged: true
       affinity:
         podAntiAffinity:
-          # The following sections are two examples of using anti pod affinity.
-          # The uncommented section is enabled, or you can use the other example.
-          # Both cannot be used at the same time, and thuse the required rule
-          # is commented out.
-          #
-          # This is using pod anti-affinity to ensure that the scheduler tries
-          # it best to spread pods
-          # see https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity-beta-feature)
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
@@ -72,26 +64,10 @@ spec:
                     values:
                     - data
               topologyKey: kubernetes.io/hostname
-          # use pod anti-affinity to force the scheduler to not deploy two
-          # es-data pod on the same node.
-          #requiredDuringSchedulingIgnoredDuringExecution:
-          # - weight: 100
-            # podAffinityTerm:
-            #   labelSelector:
-            #     matchExpressions:
-            #       - key: component
-            #         operator: In
-            #         values:
-            #         - elasticsearch
-            #       - key: role
-            #         operator: In
-            #         values:
-            #         - data
-            #   topologyKey: kubernetes.io/hostname
       terminationGracePeriodSeconds: 60
       containers:
       - name: es-data
-        image: quay.io/pires/docker-elasticsearch-kubernetes:6.2.4
+        image: quay.io/pires/docker-elasticsearch-kubernetes:6.3.2
         env:
         - name: NAMESPACE
           valueFrom:

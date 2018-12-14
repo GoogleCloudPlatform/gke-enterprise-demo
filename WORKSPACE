@@ -62,8 +62,8 @@ k8s_defaults(
 # Standard bazel golang support
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.15.3/rules_go-0.15.3.tar.gz",
-    sha256 = "97cf62bdef33519412167fd1e4b0810a318a7c234f5f8dc4f53e2da86241c492",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.15.5/rules_go-0.15.5.tar.gz",
+    sha256 = "8f6ec7856863aac58a12c921215c8e9ab1c03cb0c570397fed4a79ade7c0bb4a",
 )
 load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_rules_dependencies()
