@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: apps/v1beta1
+
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: es-ingest
@@ -20,6 +21,10 @@ metadata:
     role: ingest
 spec:
   replicas: 2
+  selector:
+    matchLabels:
+      component: elasticsearch
+      role: ingest
   template:
     metadata:
       labels:
@@ -37,37 +42,49 @@ spec:
           privileged: true
       containers:
       - name: es-ingest
-        image: quay.io/pires/docker-elasticsearch-kubernetes:6.3.2
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
         env:
+        - name: ES_JAVA_OPTS
+          value: -Xms256m -Xmx256m
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: NODE_NAME
+        - name: cluster.name
+          value: myesdb
+        - name: discovery.zen.minimum_master_nodes
+          value: "1"
+        - name: discovery.zen.ping.unicast.hosts
+          value: elasticsearch-discovery
+        - name: http.compression
+          value: "true"
+        - name: http.cors.enabled
+          value: "true"
+        - name: http.cors.allow-origin
+          value: "*"
+        - name: http.enabled
+          value: "true"
+        - name: network.host
+          value: _site_
+        - name: node.ingest
+          value: "true"
+        - name: node.data
+          value: "false"
+        - name: node.master
+          value: "false"
+        - name: node.name
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: CLUSTER_NAME
-          value: myesdb
-        - name: NODE_MASTER
-          value: "false"
-        - name: NODE_DATA
-          value: "false"
-        - name: HTTP_ENABLE
-          value: "true"
-        - name: ES_JAVA_OPTS
-          value: -Xms256m -Xmx256m
-        - name: NETWORK_HOST
-          value: _site_,_lo_
-        - name: PROCESSORS
+        - name: processors
           valueFrom:
             resourceFieldRef:
               resource: limits.cpu
         resources:
           requests:
-            cpu: 0.25
+            cpu: "250m"
           limits:
-            cpu: 1
+            cpu: "1000m"
         ports:
         - containerPort: 9200
           name: http
@@ -76,7 +93,7 @@ spec:
         livenessProbe:
           tcpSocket:
             port: transport
-          initialDelaySeconds: 20
+          initialDelaySeconds: 60
           periodSeconds: 10
         readinessProbe:
           httpGet:
@@ -87,6 +104,16 @@ spec:
         volumeMounts:
         - name: storage
           mountPath: /data
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  component: elasticsearch
+                  role: ingest
+              topologyKey: kubernetes.io/hostname
       volumes:
           - emptyDir:
               medium: ""

@@ -31,7 +31,8 @@ data:
   post-start-hook.sh: |-
     #!/bin/bash
     set -e
-    apk --no-cache add jq
+    yum install -y epel-release
+    yum install -y jq
   pre-stop-hook.sh: |-
     #!/bin/bash
     set -e

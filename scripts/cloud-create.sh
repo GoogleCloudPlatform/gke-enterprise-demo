@@ -58,6 +58,7 @@ bazel run \
   --define cluster="${CONTEXT}" \
   --define repo="${REPO}" \
   //pyrios-ui:k8s.apply
+  
 bazel run \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \

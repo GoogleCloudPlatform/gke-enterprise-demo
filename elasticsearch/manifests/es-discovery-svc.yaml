@@ -31,3 +31,4 @@ spec:
   - name: transport
     port: 9300
     protocol: TCP
+  clusterIP: None

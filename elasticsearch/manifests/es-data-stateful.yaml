@@ -22,14 +22,12 @@ metadata:
     component: elasticsearch
     role: data
 spec:
-  replicas: 3
-  updateStrategy:
-    type: RollingUpdate
-  serviceName: elasticsearch-data
   selector:
     matchLabels:
       component: elasticsearch
       role: data
+  serviceName: elasticsearch-data
+  replicas: 3
   template:
     metadata:
       labels:
@@ -38,8 +36,6 @@ spec:
     spec:
       serviceAccountName: elasticsearch-data
       initContainers:
-      # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
-      # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
       - name: init-sysctl
         image: busybox:1.27.2
         command:
@@ -64,38 +60,43 @@ spec:
                     values:
                     - data
               topologyKey: kubernetes.io/hostname
-      terminationGracePeriodSeconds: 60
       containers:
       - name: es-data
-        image: quay.io/pires/docker-elasticsearch-kubernetes:6.3.2
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
         env:
+        - name: ES_JAVA_OPTS
+          value: -Xms1536m -Xmx1536m
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: NODE_NAME
+        - name: cluster.name
+          value: myesdb
+        - name: discovery.zen.ping.unicast.hosts
+          value: elasticsearch-discovery
+        - name: http.compression
+          value: "true"
+        - name: http.cors.enabled
+          value: "true"
+        - name: http.cors.allow-origin
+          value: "*"
+        - name: http.enabled
+          value: "true"
+        - name: node.master
+          value: "false"
+        - name: node.ingest
+          value: "false"
+        - name: node.name
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: CLUSTER_NAME
-          value: myesdb
-        - name: NODE_MASTER
-          value: "false"
-        - name: NODE_INGEST
-          value: "false"
-        - name: HTTP_ENABLE
-          value: "true"
-        - name: ES_JAVA_OPTS
-          value: -Xms1536m -Xmx1536m
-        - name: NETWORK_HOST
-          value: _site_,_lo_
-        - name: PROCESSORS
+        - name: processors
           valueFrom:
             resourceFieldRef:
               resource: limits.cpu
         resources:
           limits:
-            cpu: "1"
+            cpu: "1000m"
           requests:
             cpu: "25m"
             memory: "1536Mi"
@@ -111,9 +112,9 @@ spec:
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /_cluster/health?local=true
+            path: /_cluster/health
             port: http
-          initialDelaySeconds: 60
+          initialDelaySeconds: 20
           timeoutSeconds: 5
         volumeMounts:
         - name: storage
@@ -136,12 +137,12 @@ spec:
         configMap:
           name: es-cm
   volumeClaimTemplates:
-  - metadata:
-      name: storage
-    spec:
-      storageClassName: repd-fast
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 12Gi
+    - metadata:
+        name: storage
+      spec:
+        storageClassName: repd-fast
+        accessModes: [ ReadWriteOnce ]
+        resources:
+          requests:
+            storage: "12Gi"
+          
