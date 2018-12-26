@@ -52,8 +52,11 @@ PROJECT=$(gcloud config get-value core/project)
 # todo: this seems to get hung up if the log sink export isn't deleted yet.
 # we need to be able to robustly delete all resources
 
+# Set auth for bq so we don't get prompted
+echo "credential_file = ${GOOGLE_APPLICATION_CREDENTIALS}" > /home/jenkins/.bigqueryrc
+
 bq --headless rm -rf staging_gke_elasticsearch_log_dataset || true
 # destroy the rest of GCP infrastructure via Terraform
 # such as GKE clusters,
 
-terraform destroy -var project="$PROJECT" -auto-approve terraform/
+terraform destroy -var project="$PROJECT" -input=false -auto-approve terraform/
