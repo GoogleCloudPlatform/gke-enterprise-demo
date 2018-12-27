@@ -44,7 +44,7 @@ spec:
           privileged: true
       containers:
       - name: es-master
-        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4# The configuration settings for Elasticsearch docker containers can be set via environment variables.
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
         # The configuration settings for Elasticsearch docker containers can be set via environment variables.
         # For more information see:
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-configuration-methods

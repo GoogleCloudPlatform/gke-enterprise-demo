@@ -93,9 +93,6 @@ spec:
         # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-http.html#_settings_2
         - name: http.cors.allow-origin
           value: "*"
-        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-http.html#_settings_2
-        - name: http.enabled
-          value: "true"
         # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-node.html#master-node
         - name: node.master
           value: "false"

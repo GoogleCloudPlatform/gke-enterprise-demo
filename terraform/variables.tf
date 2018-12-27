@@ -33,6 +33,7 @@ variable "zone_on_prem" {
 }
 
 variable "zone_on_prem_failover" {
+  type = "list"
   default = ["us-west1-b", "us-west1-c"]
 }
 
