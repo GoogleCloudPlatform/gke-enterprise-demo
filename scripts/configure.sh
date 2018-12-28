@@ -33,15 +33,23 @@ command -v kubectl >/dev/null 2>&1 || { \
  echo >&2 "I require kubectl but it's not installed.  Aborting."; exit 1; }
 
 PROJECT=$(gcloud config get-value core/project)
+
 if [[ -z "$PROJECT" ]]; then
+
   echo "No default project set. Please set one with gcloud config"
   exit 1
+
 fi
+
 # generate all k8s contexts for the current project in ~/.kube/config
-CLUSTER_NAME_ZONE=$(gcloud container clusters list --format="value(name,zone)" --project "$PROJECT" --filter="name ~ ^gke-enterprise")
+CLUSTER_NAME_ZONE=$(gcloud container clusters list --format="value(name,zone)" --project "$PROJECT" --filter="name ~ ^test-gke-enterprise")
+
 echo "$CLUSTER_NAME_ZONE" | xargs -n 2 | while read -r name zone
 do
-    if [[ -z "$zone" ]]; then
+
+    if [[ ! -z "$zone" ]]; then
+
+        echo "$name $zone"
 
         gcloud container clusters get-credentials "$name" --zone "$zone"
 
@@ -51,7 +59,9 @@ done
 
 # delete k8s.env
 if [[ -f "$PROJECT_ROOT"/k8s.env ]]; then
+
   rm -f "$PROJECT_ROOT"/k8s.env
+
 fi
 
 # write out the k8s.env
