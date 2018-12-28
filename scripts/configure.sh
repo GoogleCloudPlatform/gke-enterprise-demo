@@ -38,7 +38,7 @@ if [[ -z "$PROJECT" ]]; then
   exit 1
 fi
 # generate all k8s contexts for the current project in ~/.kube/config
-CLUSTER_NAME_ZONE=$(gcloud container clusters list --format="value(name,zone)" --project "$PROJECT")
+CLUSTER_NAME_ZONE=$(gcloud container clusters list --format="value(name,zone)" --project "$PROJECT" --filter="tags.items=gke-enterprise-demo")
 echo "$CLUSTER_NAME_ZONE" | xargs -n 2 | while read -r name zone
 do
    gcloud container clusters get-credentials "$name" --zone "$zone"
@@ -73,7 +73,7 @@ command -v gcloud >/dev/null 2>&1 || { \
 command -v kubectl >/dev/null 2>&1 || { \
  echo >&2 "I require kubectl but it's not installed.  Aborting."; exit 1; }
 
-STAGING_CLOUD_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*staging-cloud-cluster")
-STAGING_ON_PREM_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*staging-on-prem-cluster")
+STAGING_CLOUD_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*gke-enterprise-staging-cloud-cluster")
+STAGING_ON_PREM_GKE_CONTEXT=$(kubectl config get-contexts -o=name | grep "$(gcloud config get-value project).*gke-enterprise-staging-on-prem-cluster")
 
 EOF
