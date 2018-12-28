@@ -76,8 +76,6 @@ resource "google_container_cluster" "staging_on_prem_cluster" {
 
   min_master_version = "${var.gke_master_version}"
 
-  tags = ["gke-enterprise-demo", "staging-on-prem-cluster"]
-
   ip_allocation_policy {
     cluster_secondary_range_name = "${module.staging_on_prem.secondary_range_name}"
   }
@@ -121,8 +119,6 @@ resource "google_container_cluster" "staging_cloud_cluster" {
   initial_node_count = 1
 
   min_master_version = "${var.gke_master_version}"
-
-  tags = ["gke-enterprise-demo", "staging-cloud-cluster"]
 
   ip_allocation_policy {
     cluster_secondary_range_name = "${module.staging_cloud.secondary_range_name}"

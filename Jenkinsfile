@@ -61,8 +61,6 @@ spec:
            checkout scm
            // setup the cluster k8s file for linting
            sh "make configure"
-           // Set auth for bq so we don't get prompted
-           sh "echo credential_file=${GOOGLE_APPLICATION_CREDENTIALS} > /home/jenkins/.bigqueryrc"
            // This will run all of our source code linting
            sh "make lint"
          }
@@ -128,6 +126,10 @@ spec:
     }
     finally {
       stage('Teardown') {
+
+        // Set auth for bq so we don't get prompted
+        echo "credential_file=${GOOGLE_APPLICATION_CREDENTIALS}" > /home/jenkins/.bigqueryrc
+
         container(containerName) {
           // This will create k8s.env which contains context names
           sh "make configure"
