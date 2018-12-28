@@ -125,7 +125,7 @@ spec:
       throw err
     }
     finally {
-      stage('Teardown')
+      stage('Teardown') {
         container(containerName) {
           // This will create k8s.env which contains context names
           sh "make configure"
