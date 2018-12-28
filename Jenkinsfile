@@ -63,7 +63,7 @@ spec:
            sh "gcloud config set core/project ${env.PROJECT_ID}"
            sh "gcloud config set compute/region ${env.REGION}"
 
-           sh 'echo credential_file=${GOOGLE_APPLICATION_CREDENTIALS}" > /home/jenkins/.bigqueryrc'
+           sh 'echo "credential_file=${GOOGLE_APPLICATION_CREDENTIALS}" > /home/jenkins/.bigqueryrc'
          }
        }
 
