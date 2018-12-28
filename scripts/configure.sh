@@ -41,11 +41,16 @@ fi
 CLUSTER_NAME_ZONE=$(gcloud container clusters list --format="value(name,zone)" --project "$PROJECT" --filter="name ~ ^gke-enterprise")
 echo "$CLUSTER_NAME_ZONE" | xargs -n 2 | while read -r name zone
 do
-   gcloud container clusters get-credentials "$name" --zone "$zone"
+    if [[ -z "$zone" ]]; then
+
+        gcloud container clusters get-credentials "$name" --zone "$zone"
+
+    fi
+
 done
 
 # delete k8s.env
-if [ -f "$PROJECT_ROOT"/k8s.env ]; then
+if [[ -f "$PROJECT_ROOT"/k8s.env ]]; then
   rm -f "$PROJECT_ROOT"/k8s.env
 fi
 
