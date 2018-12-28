@@ -130,6 +130,7 @@ resource "google_container_cluster" "staging_cloud_cluster" {
     // https://cloud.google.com/kubernetes-engine/docs/how-to/access-scopes
     // Enable private gcr.io read access for the same project
     oauth_scopes = [
+      "https://www.googleapis.com/auth/compute",
       "https://www.googleapis.com/auth/devstorage.read_only",
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
@@ -153,6 +154,7 @@ resource "google_container_cluster" "staging_cloud_cluster" {
   lifecycle {
     ignore_changes = ["network", "subnetwork", "ip_allocation_policy.0.services_secondary_range_name"]
   }
+
 }
 
 resource "google_bigquery_dataset" "staging-log-sink-dataset" {

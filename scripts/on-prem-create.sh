@@ -29,8 +29,10 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 # shellcheck source=k8s.env
 source "$PROJECT_ROOT"/k8s.env
+source "$PROJECT_ROOT"/scripts/common-functions.sh
 
 CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"
+
 echo "install elasticsearch on $CONTEXT cluster"
 TIMEOUT="5m"
 
@@ -49,63 +51,32 @@ if ! kubectl --namespace default --context "$CONTEXT" get clusterrolebinding clu
     --user="$(gcloud config get-value core/account)"
 fi
 
-# roll out the master,client and data manifest in order due to dependencies
-# roll out master nodes related objects
-echo "roll out master nodes related objects"
-kubectl --namespace default --context "$CONTEXT" apply \
-  -f "$PROJECT_ROOT"/elasticsearch/manifests/es-discovery-svc.yaml
-kubectl --namespace default --context "$CONTEXT" apply \
-  -f "$PROJECT_ROOT"/elasticsearch/manifests/es-svc.yaml
-kubectl --namespace default --context "$CONTEXT" apply \
-  -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master.yaml
+apply_manifest es-discovery-svc.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-svc.yaml $PROJECT_ROOT $CONTEXT
 
-echo "wait for master nodes to deploy"
-kubectl --namespace default --context "$CONTEXT" \
-  --request-timeout="$TIMEOUT" rollout status \
-  -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master.yaml
+apply_manifest es-master-svc.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-master-stateful.yaml $PROJECT_ROOT $CONTEXT
 
-# roll out client nodes related objects, client depends on the master nodes
-echo "roll out client nodes related objects, client depends on the master nodes"
-kubectl --namespace default --context "$CONTEXT" apply \
-  -f "$PROJECT_ROOT"/elasticsearch/manifests/es-client.yaml
+wait_for_rollout es-master-stateful.yaml $PROJECT_ROOT $CONTEXT $TIMEOUT
 
-echo "wait for client nodes to deploy"
-kubectl --namespace default --context "$CONTEXT" \
-  --request-timeout="$TIMEOUT" rollout status \
-  -f "$PROJECT_ROOT"/elasticsearch/manifests/es-client.yaml
+apply_manifest es-ingest-svc.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-ingest.yaml $PROJECT_ROOT $CONTEXT
 
-# roll out rbac for data nodes
-echo "roll out rbac for data nodes"
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/service-account.yaml
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/clusterrole.yaml
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/clusterrolebinding.yaml
+wait_for_rollout es-ingest.yaml $PROJECT_ROOT $CONTEXT $TIMEOUT
 
-# roll out data nodes
-echo "roll out data nodes"
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-svc.yaml
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-sc.yaml
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/configmap.yaml
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-stateful.yaml
+apply_manifest service-account.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest clusterrole.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest clusterrolebinding.yaml $PROJECT_ROOT $CONTEXT
 
-echo "wait for data nodes to deploy"
-kubectl --namespace default --context "$CONTEXT" \
-  --request-timeout="$TIMEOUT" rollout status \
-  -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-stateful.yaml
+apply_manifest es-data-svc.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-data-sc.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest configmap.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-data-stateful.yaml $PROJECT_ROOT $CONTEXT
 
-# roll out pdb for master and data nodes
-echo "roll out pdb for master and data nodes"
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-master-pdb.yaml
-kubectl --namespace default --context "$CONTEXT" \
-  apply -f "$PROJECT_ROOT"/elasticsearch/manifests/es-data-pdb.yaml
+wait_for_rollout es-data-stateful.yaml $PROJECT_ROOT $CONTEXT $TIMEOUT
 
-echo "create network policy"
+apply_manifest es-master-pdb.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-data-pdb.yaml $PROJECT_ROOT $CONTEXT
+
 kubectl --namespace default --context "$CONTEXT" \
   apply -f "$PROJECT_ROOT"/policy/on-prem-network-policy.yaml

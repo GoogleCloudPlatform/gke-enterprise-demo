@@ -12,35 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Deployment for ElasticSearch client nodes
-# See https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: es-client
+  name: es-master
   labels:
     component: elasticsearch
-    role: client
+    role: master
 spec:
-  replicas: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
   selector:
     matchLabels:
-        component: elasticsearch
-        role: client
+      component: elasticsearch
+      role: master
+  serviceName: elasticsearch-master
+  replicas: 3
   template:
     metadata:
       labels:
         component: elasticsearch
-        role: client
+        role: master
     spec:
       initContainers:
-      # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
-      # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
       - name: init-sysctl
         image: busybox:1.27.2
         command:
@@ -50,8 +42,8 @@ spec:
         securityContext:
           privileged: true
       containers:
-      - name: es-client
-        image: quay.io/pires/docker-elasticsearch-kubernetes:6.2.4
+      - name: es-master
+        image: quay.io/pires/docker-elasticsearch-kubernetes:6.3.0
         env:
         - name: NAMESPACE
           valueFrom:
@@ -63,47 +55,44 @@ spec:
               fieldPath: metadata.name
         - name: CLUSTER_NAME
           value: myesdb
+        - name: NUMBER_OF_MASTERS
+          value: "2"
         - name: NODE_MASTER
+          value: "true"
+        - name: NODE_INGEST
           value: "false"
         - name: NODE_DATA
           value: "false"
         - name: HTTP_ENABLE
-          value: "true"
+          value: "false"
         - name: ES_JAVA_OPTS
-          value: -Xms512m -Xmx512m
-        # _site_ is needed for readinessProbe to work
-        - name: NETWORK_HOST
-          value: _site_,_lo_
+          value: -Xms256m -Xmx256m
         - name: PROCESSORS
           valueFrom:
             resourceFieldRef:
               resource: limits.cpu
         resources:
-          limits:
-            cpu: "1"
           requests:
-            cpu: "25m"
-            memory: "512Mi"
+            cpu: 0.25
+          limits:
+            cpu: 1
         ports:
-        - containerPort: 9200
-          name: http
         - containerPort: 9300
           name: transport
         livenessProbe:
           tcpSocket:
             port: transport
-          initialDelaySeconds: 30
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /_cluster/health?wait_for_status=yellow
-            port: http
-          initialDelaySeconds: 30
-          timeoutSeconds: 5
+          initialDelaySeconds: 20
+          periodSeconds: 10
         volumeMounts:
         - name: storage
           mountPath: /data
-      volumes:
-          - emptyDir:
-              medium: ""
-            name: storage
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      storageClassName: standard
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 2Gi
