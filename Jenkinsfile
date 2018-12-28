@@ -125,11 +125,7 @@ spec:
       throw err
     }
     finally {
-      stage('Teardown') {
-
-        // Set auth for bq so we don't get prompted
-        echo "credential_file=${GOOGLE_APPLICATION_CREDENTIALS}" > /home/jenkins/.bigqueryrc
-
+      stage('Teardown')
         container(containerName) {
           // This will create k8s.env which contains context names
           sh "make configure"
