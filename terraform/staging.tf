@@ -63,7 +63,7 @@ module "staging_on_prem" {
 // Creates a Google Kubernetes Engine (GKE) cluster for the on premise data center
 // https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "staging_on_prem_cluster" {
-  name    = "gke-enterprise-demo-staging-on-prem-cluster"
+  name    = "gke-enterprise-staging-on-prem-cluster"
   project = "${var.project}"
 
   zone             = "${var.zone_on_prem}"
@@ -112,7 +112,7 @@ resource "google_container_cluster" "staging_on_prem_cluster" {
 // Creates a Google Kubernetes Engine (GKE) cluster for the cloud
 // https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "staging_cloud_cluster" {
-  name               = "gke-enterprise-demo-staging-cloud-cluster"
+  name               = "gke-enterprise-staging-cloud-cluster"
   zone               = "${var.zone_cloud}"
   network            = "${module.staging_cloud.network}"
   subnetwork         = "${module.staging_cloud.subnetwork}"
@@ -158,7 +158,7 @@ resource "google_container_cluster" "staging_cloud_cluster" {
 }
 
 resource "google_bigquery_dataset" "staging-log-sink-dataset" {
-  dataset_id                  = "gke_enterprise_demo_staging_gke_elasticsearch_log_dataset"
+  dataset_id                  = "staging_gke_elasticsearch_log_dataset"
   project                     = "${var.project}"
   location                    = "US"
   default_table_expiration_ms = "3600000"
