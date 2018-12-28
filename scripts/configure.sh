@@ -41,15 +41,14 @@ if [[ -z "$PROJECT" ]]; then
 
 fi
 
-# generate all k8s contexts for the current project in ~/.kube/config
-CLUSTER_NAME_ZONE=$(gcloud container clusters list --format="value(name,zone)" --project "$PROJECT" --filter="name ~ ^test-gke-enterprise")
+# Generate all k8s kubectl contexts for GKE clusters currently running in the given project.
+# N.B. All clusters not prefixed with 'gke-enterprise' are filtered out.
+CLUSTER_NAME_ZONE=$(gcloud container clusters list --format="value(name,zone)" --project "$PROJECT" --filter="name ~ ^gke-enterprise")
 
 echo "$CLUSTER_NAME_ZONE" | xargs -n 2 | while read -r name zone
 do
 
     if [[ ! -z "$zone" ]]; then
-
-        echo "$name $zone"
 
         gcloud container clusters get-credentials "$name" --zone "$zone"
 
