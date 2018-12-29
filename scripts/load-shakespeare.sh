@@ -44,10 +44,9 @@ curl "http://localhost:9200/shakespeare" \
 
 echo " "
 echo "Loading the data into the Elasticsearch cluster"
-curl "http://localhost:9200/shakespeare/doc/_bulk" \
-   -s \
-   -H "Content-Type: application/x-ndjson" \
-   -X POST \
+
+curl -XPOST "http://localhost:9200/shakespeare/doc/_bulk?pretty" \
+    -H "Content-Type: application/x-ndjson" \
    --connect-timeout 600 \
    --max-time 10 \
    --retry 5 \
