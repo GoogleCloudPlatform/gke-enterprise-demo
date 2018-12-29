@@ -48,7 +48,7 @@ curl "http://localhost:9200/shakespeare/doc/_bulk" \
    -s \
    -H "Content-Type: application/x-ndjson" \
    -X POST \
-   --connection-timeout 360 \
+   --connect-timeout 360 \
    --max-time 10 \
    --retry 5 \
    --retry-delay 5 \
