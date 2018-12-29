@@ -42,13 +42,13 @@ curl "http://localhost:9200/shakespeare" \
   -X PUT \
   -d @"$PROJECT_ROOT"/elasticsearch/data/mappings.json
 
-echo "Loading the data into the Elasticsearch cluster"
 echo " "
+echo "Loading the data into the Elasticsearch cluster"
 curl "http://localhost:9200/shakespeare/doc/_bulk" \
    -s \
    -H "Content-Type: application/x-ndjson" \
    -X POST \
-   --connect-timeout 360 \
+   --connect-timeout 600 \
    --max-time 10 \
    --retry 5 \
    --retry-delay 5 \
