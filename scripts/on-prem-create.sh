@@ -29,6 +29,7 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 # shellcheck source=k8s.env
 source "$PROJECT_ROOT"/k8s.env
+# shellcheck source=scripts/common-functions.sh
 source "$PROJECT_ROOT"/scripts/common-functions.sh
 
 CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"
@@ -51,32 +52,32 @@ if ! kubectl --namespace default --context "$CONTEXT" get clusterrolebinding clu
     --user="$(gcloud config get-value core/account)"
 fi
 
-apply_manifest es-discovery-svc.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest es-svc.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-discovery-svc.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest es-svc.yaml "$PROJECT_ROOT" "$CONTEXT"
 
-apply_manifest es-master-svc.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest es-master-stateful.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-master-svc.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest es-master-stateful.yaml "$PROJECT_ROOT" "$CONTEXT"
 
-wait_for_rollout es-master-stateful.yaml $PROJECT_ROOT $CONTEXT $TIMEOUT
+wait_for_rollout es-master-stateful.yaml "$PROJECT_ROOT" "$CONTEXT" "$TIMEOUT"
 
-apply_manifest es-ingest-svc.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest es-ingest.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-ingest-svc.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest es-ingest.yaml "$PROJECT_ROOT" "$CONTEXT"
 
-wait_for_rollout es-ingest.yaml $PROJECT_ROOT $CONTEXT $TIMEOUT
+wait_for_rollout es-ingest.yaml "$PROJECT_ROOT" "$CONTEXT" "$TIMEOUT"
 
-apply_manifest service-account.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest clusterrole.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest clusterrolebinding.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest service-account.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest clusterrole.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest clusterrolebinding.yaml "$PROJECT_ROOT" "$CONTEXT"
 
-apply_manifest es-data-svc.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest es-data-sc.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest configmap.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest es-data-stateful.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-data-svc.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest es-data-sc.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest configmap.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest es-data-stateful.yaml "$PROJECT_ROOT" "$CONTEXT"
 
-wait_for_rollout es-data-stateful.yaml $PROJECT_ROOT $CONTEXT $TIMEOUT
+wait_for_rollout es-data-stateful.yaml "$PROJECT_ROOT" "$CONTEXT" "$TIMEOUT"
 
-apply_manifest es-master-pdb.yaml $PROJECT_ROOT $CONTEXT
-apply_manifest es-data-pdb.yaml $PROJECT_ROOT $CONTEXT
+apply_manifest es-master-pdb.yaml "$PROJECT_ROOT" "$CONTEXT"
+apply_manifest es-data-pdb.yaml "$PROJECT_ROOT" "$CONTEXT"
 
 kubectl --namespace default --context "$CONTEXT" \
   apply -f "$PROJECT_ROOT"/policy/on-prem-network-policy.yaml

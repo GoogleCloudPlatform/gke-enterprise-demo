@@ -55,6 +55,18 @@ spec:
        // set env variable GOOGLE_APPLICATION_CREDENTIALS for Terraform
        env.GOOGLE_APPLICATION_CREDENTIALS=GOOGLE_APPLICATION_CREDENTIALS
 
+       stage('Setup') {
+         container(containerName) {
+           // Setup gcloud service account access
+           sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
+           sh "gcloud config set compute/zone ${env.ZONE}"
+           sh "gcloud config set core/project ${env.PROJECT_ID}"
+           sh "gcloud config set compute/region ${env.REGION}"
+
+           sh 'echo "credential_file=${GOOGLE_APPLICATION_CREDENTIALS}" > /home/jenkins/.bigqueryrc'
+         }
+       }
+
        stage('Linting') {
          container(containerName) {
            // checkout the source code
@@ -63,16 +75,6 @@ spec:
            sh "make configure"
            // This will run all of our source code linting
            sh "make lint"
-         }
-       }
-
-       stage('Setup') {
-         container(containerName) {
-           // Setup gcloud service account access
-           sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
-           sh "gcloud config set compute/zone ${env.ZONE}"
-           sh "gcloud config set core/project ${env.PROJECT_ID}"
-           sh "gcloud config set compute/region ${env.REGION}"
          }
        }
 

@@ -22,12 +22,12 @@ limitations under the License.
 // https://cloud.google.com/vpn/docs/how-to/creating-policy-based-vpns
 // Reserve regional external (static) IP addresses
 resource "google_compute_address" "staging_public_ip_1" {
-  name   = "cloud-public-ip-1"
+  name   = "gke-enterprise-demo-cloud-public-ip-1"
   region = "${var.region_cloud}"
 }
 
 resource "google_compute_address" "staging_public_ip_2" {
-  name   = "cloud-public-ip-2"
+  name   = "gke-enterprise-demo-cloud-public-ip-2"
   region = "${var.region_on_prem}"
 }
 
@@ -35,7 +35,7 @@ resource "google_compute_address" "staging_public_ip_2" {
 module "staging_cloud" {
   source            = "modules/datacenter"
   project           = "${var.project}"
-  network_name      = "staging-cloud"
+  network_name      = "gke-enterprise-demo-staging-cloud"
   subnet_region     = "${var.region_cloud}"
   primary_range     = "${lookup(var.cloud, "primary_range")}"
   secondary_range   = "${lookup(var.cloud, "secondary_range")}"
@@ -50,7 +50,7 @@ module "staging_cloud" {
 module "staging_on_prem" {
   source            = "modules/datacenter"
   project           = "${var.project}"
-  network_name      = "staging-on-prem"
+  network_name      = "gke-enterprise-demo-staging-on-prem"
   subnet_region     = "${var.region_on_prem}"
   primary_range     = "${lookup(var.on_prem, "primary_range")}"
   secondary_range   = "${lookup(var.on_prem, "secondary_range")}"
@@ -63,7 +63,7 @@ module "staging_on_prem" {
 // Creates a Google Kubernetes Engine (GKE) cluster for the on premise data center
 // https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "staging_on_prem_cluster" {
-  name    = "staging-on-prem-cluster"
+  name    = "gke-enterprise-staging-on-prem-cluster"
   project = "${var.project}"
 
   zone             = "${var.zone_on_prem}"
@@ -112,7 +112,7 @@ resource "google_container_cluster" "staging_on_prem_cluster" {
 // Creates a Google Kubernetes Engine (GKE) cluster for the cloud
 // https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "staging_cloud_cluster" {
-  name               = "staging-cloud-cluster"
+  name               = "gke-enterprise-staging-cloud-cluster"
   zone               = "${var.zone_cloud}"
   network            = "${module.staging_cloud.network}"
   subnetwork         = "${module.staging_cloud.subnetwork}"
@@ -169,7 +169,7 @@ resource "google_bigquery_dataset" "staging-log-sink-dataset" {
 }
 
 resource "google_logging_project_sink" "staging-bigquery-sink" {
-  name                   = "staging-gke-elasticsearch-log-sink"
+  name                   = "gke-enterprise-demo-staging-gke-elasticsearch-log-sink"
   project                = "${var.project}"
   destination            = "bigquery.googleapis.com/projects/${var.project}/datasets/${google_bigquery_dataset.staging-log-sink-dataset.dataset_id}"
   filter                 = "resource.type=container"

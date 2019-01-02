@@ -19,10 +19,9 @@ metadata:
     component: elasticsearch
     role: ingest
 spec:
-  type: LoadBalancer
-  selector:
-    component: elasticsearch
-    role: ingest
   ports:
   - name: http
     port: 9200
+  selector:
+    component: elasticsearch
+    role: ingest

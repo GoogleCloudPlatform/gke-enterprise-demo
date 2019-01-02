@@ -27,7 +27,7 @@ spec:
   ports:
   - port: 9300
     name: transport
+  clusterIP: None
   selector:
     component: elasticsearch
     role: data
-  clusterIP: None

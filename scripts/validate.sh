@@ -39,7 +39,7 @@ fail() {
 }
 
 # Validate ES version
-EXPECTED_ES_VERSION=6.3.2
+EXPECTED_ES_VERSION=6.5.4
 ES_VERSION=$(curl -s http://localhost:9200/ | jq -r '.version.number')
 if [[ "$ES_VERSION" == "$EXPECTED_ES_VERSION" ]]
 then

@@ -24,7 +24,7 @@ spec:
     matchLabels:
       component: elasticsearch
       role: master
-  serviceName: elasticsearch-master
+  serviceName: "elasticsearch-master"
   replicas: 3
   template:
     metadata:
@@ -32,6 +32,7 @@ spec:
         component: elasticsearch
         role: master
     spec:
+      # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
       initContainers:
       - name: init-sysctl
         image: busybox:1.27.2
@@ -43,39 +44,64 @@ spec:
           privileged: true
       containers:
       - name: es-master
-        image: quay.io/pires/docker-elasticsearch-kubernetes:6.3.0
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+        # The configuration settings for Elasticsearch docker containers can be set via environment variables.
+        # For more information see:
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-configuration-methods
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html
         env:
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/jvm-options.html
+        - name: ES_JAVA_OPTS
+          value: -Xms256m -Xmx256m
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: NODE_NAME
+          # https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster.name.html
+        - name: cluster.name
+          value: myesdb
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/discovery-settings.html#minimum_master_nodes
+        - name: discovery.zen.minimum_master_nodes
+          value: "1"
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/discovery-settings.html#unicast.hosts
+        - name: discovery.zen.ping.unicast.hosts
+          value: elasticsearch-discovery
+        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-http.html#_settings_2
+        - name: http.compression
+          value: "true"
+        #  https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-http.html#_settings_2
+        - name: http.cors.enabled
+          value: "true"
+        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-http.html#_settings_2
+        - name: http.cors.allow-origin
+          value: "*"
+        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-http.html#_settings_2
+        - name: http.enabled
+          value: "false"
+        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-node.html#master-node
+        - name: node.master
+          value: "true"
+        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-node.html#data-node
+        - name: node.data
+          value: "false"
+        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-node.html#ingest-node
+        - name: node.ingest
+          value: "false"
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/node.name.html
+        - name: node.name
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: CLUSTER_NAME
-          value: myesdb
-        - name: NUMBER_OF_MASTERS
-          value: "2"
-        - name: NODE_MASTER
-          value: "true"
-        - name: NODE_INGEST
-          value: "false"
-        - name: NODE_DATA
-          value: "false"
-        - name: HTTP_ENABLE
-          value: "false"
-        - name: ES_JAVA_OPTS
-          value: -Xms256m -Xmx256m
-        - name: PROCESSORS
+        # https://www.elastic.co/guide/en/elasticsearch/reference/6.5/ingest-processors.html
+        - name: processors
           valueFrom:
             resourceFieldRef:
               resource: limits.cpu
         resources:
           requests:
-            cpu: 0.25
+            cpu: "250m"
           limits:
-            cpu: 1
+            cpu: "1000m"
         ports:
         - containerPort: 9300
           name: transport
@@ -87,6 +113,18 @@ spec:
         volumeMounts:
         - name: storage
           mountPath: /data
+      # This is using pod anti-affinity to ensure that the scheduler tries it best to spread pods.
+      # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  component: elasticsearch
+                  role: master
+              topologyKey: kubernetes.io/hostname
   volumeClaimTemplates:
   - metadata:
       name: storage
@@ -95,4 +133,4 @@ spec:
       accessModes: [ ReadWriteOnce ]
       resources:
         requests:
-          storage: 2Gi
+          storage: "2Gi"
