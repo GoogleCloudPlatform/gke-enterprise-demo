@@ -27,12 +27,6 @@ metadata:
     component: elasticsearch
     role: data
 data:
-  # install jq used in pre-stop-hook.sh
-  post-start-hook.sh: |-
-    #!/bin/bash
-    set -e
-    yum install -y epel-release
-    yum install -y jq
   pre-stop-hook.sh: |-
     #!/bin/bash
     set -e
@@ -60,8 +54,20 @@ data:
 
     echo "Prepare to migrate data of the node"
 
-    NODE_STATS=$(curl -s -XGET 'http://localhost:9200/_nodes/stats')
-    NODE_IP=$(echo "${NODE_STATS}" | jq -r ".nodes[] | select(.name==\"${HOSTNAME}\") | .host")
+    NODE_STATS=$(curl -s 'http://localhost:9200/_nodes/stats')
+
+    PY_CMD=$(cat <<- \
+    END
+      import json, sys;
+      print map(lambda x: x['host'],
+        filter(lambda x: x['name'] == '${HOSTNAME}',
+          [v for k,v in json.load(sys.stdin)['nodes'].items()]
+        )
+      )[0]
+    END
+    )
+
+    NODE_IP=$(echo "${NODE_STATS}" | python -c "${PY_CMD}")
 
     echo "Move all data from node ${NODE_IP}"
 
@@ -77,20 +83,42 @@ data:
     echo
 
     echo "Wait for node to become empty"
-    DOC_COUNT=$(echo "${NODE_STATS}" | jq ".nodes[] | select(.name==\"${HOSTNAME}\") | .indices.docs.count")
+
+    PY_CMD=$(cat <<- \
+    END
+      import json, sys;
+      print map(lambda x: x['indicies']['docs']['count'],
+        filter(lambda x: x['name'] == '${HOSTNAME}',
+          [v for k,v in json.load(sys.stdin)['nodes'].items()]
+        )
+      )[0]
+    END
+    )
+
+    NODE_STATS=$(curl -s 'http://localhost:9200/_nodes/stats')
+    DOC_COUNT=$(echo "${NODE_STATS}" | python -c "${PY_CMD}")
+
     while [ "${DOC_COUNT}" -gt 0 ]; do
-      NODE_STATS=$(curl -s -XGET 'http://localhost:9200/_nodes/stats')
-      DOC_COUNT=$(echo "${NODE_STATS}" | jq -r ".nodes[] | select(.name==\"${HOSTNAME}\") | .indices.docs.count")
+      NODE_STATS=$(curl -s 'http://localhost:9200/_nodes/stats')
+      DOC_COUNT=$(echo "${NODE_STATS}" | python -c "${PY_CMD}")
       echo "Node contains ${DOC_COUNT} documents"
       sleep 1
     done
 
     echo "Wait for node shards to become empty"
-    SHARD_STATS=$(curl -s -XGET 'http://localhost:9200/_cat/shards?format=json')
-    SHARD_COUNT=$(echo "${SHARD_STATS}" | jq "[.[] | select(.node==\"${HOSTNAME}\")] | length")
+
+    PY_CMD=$(cat <<- \
+    END
+      import json, sys;
+      print len(filter(lambda x: x['node'] == '${HOSTNAME}', json.load(sys.stdin)))
+    END
+    )
+
+    SHARD_STATS=$(curl -s 'http://localhost:9200/_cat/shards?format=json')
+    SHARD_COUNT=$(echo "${SHARD_STATS}" | python -c "${PY_CMD}")
     while [ "${SHARD_COUNT}" -gt 0 ]; do
-      SHARD_STATS=$(curl -s -XGET 'http://localhost:9200/_cat/shards?format=json')
-      SHARD_COUNT=$(echo "${SHARD_STATS}" | jq "[.[] | select(.node==\"${HOSTNAME}\")] | length")
+      SHARD_STATS=$(curl -s 'http://localhost:9200/_cat/shards?format=json')
+      SHARD_COUNT=$(echo "${SHARD_STATS}" | python -c "${PY_CMD}")
       echo "Node contains ${SHARD_COUNT} shards"
       sleep 1
     done
