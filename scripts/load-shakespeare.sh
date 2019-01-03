@@ -41,10 +41,11 @@ curl "http://localhost:9200/shakespeare" \
   -X PUT \
   -d @"$PROJECT_ROOT"/elasticsearch/data/mappings.json
 
+echo " "
 echo "Loading the data into the Elasticsearch cluster"
-curl "http://localhost:9200/shakespeare/doc/_bulk" \
-   -s \
-   -H "Content-Type: application/x-ndjson" \
-   -X POST \
+
+curl "http://localhost:9200/shakespeare/doc/_bulk?pretty" \
+    -H "Content-Type: application/x-ndjson" \
+   --retry 5 \
    --data-binary @"$PROJECT_ROOT"/elasticsearch/data/shakespeare_6.0.json
 

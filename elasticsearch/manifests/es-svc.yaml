@@ -25,11 +25,11 @@ metadata:
     cloud.google.com/load-balancer-type: "Internal"
   labels:
     component: elasticsearch
-    role: client
+    role: ingest
 spec:
   selector:
     component: elasticsearch
-    role: client
+    role: ingest
   ports:
     - port: 9200
       targetPort: 9200
