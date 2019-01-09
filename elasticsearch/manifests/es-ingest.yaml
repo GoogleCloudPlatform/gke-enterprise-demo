@@ -126,9 +126,15 @@ spec:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
-            matchLabels:
-              component: elasticsearch
-              role: ingest
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                    - elasticsearch
+              - key: role
+                operator: In
+                values:
+                - ingest
             topologyKey: kubernetes.io/hostname
       volumes:
           - emptyDir:
