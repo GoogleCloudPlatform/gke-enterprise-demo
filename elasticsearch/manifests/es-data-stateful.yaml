@@ -52,15 +52,15 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchExpressions:
-                - key: component
-                  operator: In
-                  values:
-                    - elasticsearch
-                - key: role
-                  operator: In
-                  values:
-                    - data
-              topologyKey: kubernetes.io/hostname
+              - key: component
+                operator: In
+                values:
+                  - elasticsearch
+              - key: role
+                operator: In
+                values:
+                - data
+            topologyKey: kubernetes.io/hostname
       containers:
       - name: es-data
         image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4

@@ -118,11 +118,17 @@ spec:
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                component: elasticsearch
-                role: master
-          topologyKey: kubernetes.io/hostname
+            - labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                    - elasticsearch
+                - key: role
+                  operator: In
+                  values:
+                  - master
+              topologyKey: kubernetes.io/hostname
   volumeClaimTemplates:
   - metadata:
       name: storage
