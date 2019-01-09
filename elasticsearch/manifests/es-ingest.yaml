@@ -124,14 +124,11 @@ spec:
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
       affinity:
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  component: elasticsearch
-                  role: ingest
-              topologyKey: kubernetes.io/hostname
+          - labelSelector:
+            matchLabels:
+              component: elasticsearch
+              role: ingest
+          topologyKey: kubernetes.io/hostname
       volumes:
           - emptyDir:
               medium: ""

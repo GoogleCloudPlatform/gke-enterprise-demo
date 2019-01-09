@@ -118,13 +118,11 @@ spec:
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  component: elasticsearch
-                  role: master
-              topologyKey: kubernetes.io/hostname
+          - labelSelector:
+              matchLabels:
+                component: elasticsearch
+                role: master
+          topologyKey: kubernetes.io/hostname
   volumeClaimTemplates:
   - metadata:
       name: storage
