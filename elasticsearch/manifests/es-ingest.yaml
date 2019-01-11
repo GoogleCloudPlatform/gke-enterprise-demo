@@ -120,18 +120,22 @@ spec:
         volumeMounts:
         - name: storage
           mountPath: /data
-      # This is using pod anti-affinity to ensure that the scheduler tries it best to spread pods.
+      # This is using pod anti-affinity to ensure that the scheduler requires that pods are spread across all nodes.
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
       affinity:
         podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  component: elasticsearch
-                  role: ingest
-              topologyKey: kubernetes.io/hostname
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                    - elasticsearch
+              - key: role
+                operator: In
+                values:
+                - ingest
+            topologyKey: kubernetes.io/hostname
       volumes:
           - emptyDir:
               medium: ""
