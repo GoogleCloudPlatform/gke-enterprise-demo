@@ -71,7 +71,7 @@ on a Mac workstation.
 
 This example was tested using Elasticsearch version `6.2.4` and upgrading to
 version `6.3.1`.  If you wish to use different versions, make sure the desired
-versions are available in the [Pires docker images](https://quay.io/repository/pires/docker-elasticsearch-kubernetes?tab=tags) listing.
+versions are available in the [Elasticsearch docker images](https://www.docker.elastic.co/#elasticsearch) listing.
 
 The manifests used to build and upgrade the Elasticsearch cluster are based on
 the [Pires docker-elasticsearch-kubernetes repo](https://github.com/pires/docker-elasticsearch-kubernetes) with several improvements
@@ -166,5 +166,5 @@ watch curl 'http://localhost:9200/_cat/nodes'
 * [Elasticsearch Shard Allocations](https://www.elastic.co/guide/en/elasticsearch/reference/master/shards-allocation.html)
 * [Elasticsearch Rolling Upgrades](https://www.elastic.co/guide/en/elasticsearch/reference/current/rolling-upgrades.html)
 * [Pires docker-elasticsearch-kubernetes repo](https://github.com/pires/docker-elasticsearch-kubernetes)
-* [Pires docker images](https://quay.io/repository/pires/docker-elasticsearch-kubernetes?tab=tags)
+* [Elasticsearch docker images](https://www.docker.elastic.co/#elasticsearch)
 * [StatefulSet Canary Rollout](https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#rolling-out-a-canary)
