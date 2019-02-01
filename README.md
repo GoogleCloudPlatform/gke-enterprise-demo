@@ -183,7 +183,7 @@ gcloud init
 
 This demo has been tested with macOS and Cloud Shell.
 
-You can obtain a [free trial of GCP](https://cloud.google.com/free/) if you need one
+You can obtain a [free trial of GCP](https://cloud.google.com/free/) if you need one.
 
 #### Install Cloud SDK
 The Google Cloud SDK is used to interact with your GCP resources.
