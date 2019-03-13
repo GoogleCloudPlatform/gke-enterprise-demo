@@ -5,13 +5,7 @@
      * [RBAC Setup](#rbac-setup)
      * [Build and Push Pyrios Docker Image](#build-and-push-pyrios-docker-image)
      * [Elasticsearch Cluster HA Set Up With Regional Persistent Disks](#elasticsearch-cluster-ha-set-up-with-regional-persistent-disks)
-  * [Prerequisites](#prerequisites)
-     * [Run Demo in a Google Cloud Shell](#run-demo-in-a-google-cloud-shell)
-     * [Tools](#tools)
-        * [Install Cloud SDK](#install-cloud-sdk)
-        * [Install kubectl CLI](#install-kubectl-cli)
-        * [Install Terraform](#install-terraform)
-     * [Configure gcloud](#configure-gcloud)
+  * [Configure gcloud](#configure-gcloud)
   * [Enable the GCP Services](#enable-the-gcp-services)
   * [Run Terraform for Infrastructure Provisioning](#run-terraform-for-infrastructure-provisioning)
   * [Configure](#configure)
@@ -160,61 +154,12 @@ gke-on-prem-cluster-f1-pvc-bcc115d6-6472-11e8-a9b6-42010a800140  us-west1  regio
 ```
 
 
-## Prerequisites
+## Configure gcloud
 
-### Run Demo in a Google Cloud Shell
-
-Click the button below to run the demo in a [Google Cloud Shell](https://cloud.google.com/shell/docs/).
-
-[![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?cloudshell_git_repo=https://github.com/GoogleCloudPlatform/gke-enterprise-demo.git&amp;cloudshell_image=gcr.io/graphite-cloud-shell-images/terraform:latest&amp;cloudshell_tutorial=README.md)
-
-
-All the tools for the demo are installed. When using Cloud Shell execute the following
-command in order to setup gcloud cli. When executing this command please setup your region
-and zone.
+When using Cloud Shell execute the following command in order to setup gcloud cli. When executing this command please setup your region and zone for the project.
 
 ```console
 gcloud init
-```
-
-### Tools
-
-1. [Terraform >= 0.11.7](https://www.terraform.io/downloads.html)
-2. [Google Cloud SDK version >= 204.0.0](https://cloud.google.com/sdk/docs/downloads-versioned-archives)
-3. [kubectl matching the latest GKE version](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-4. bash or bash compatible shell
-5. jq (very common, can be found in any package manager)
-6. bazel (can also be found in most package managers)
-7. A Google Cloud Platform project where you have permission to create
-   networks
-
-This demo has been tested with macOS and Cloud Shell.
-
-You can obtain a [free trial of GCP](https://cloud.google.com/free/) if you need one
-
-#### Install Cloud SDK
-
-The Google Cloud SDK is used to interact with your GCP resources.
-[Installation instructions](https://cloud.google.com/sdk/downloads) for multiple platforms are available online.
-
-#### Install kubectl CLI
-
-The kubectl CLI is used to interteract with both Kubernetes Engine and kubernetes in general.
-[Installation instructions](https://cloud.google.com/kubernetes-engine/docs/quickstart)
-for multiple platforms are available online.
-
-#### Install Terraform
-
-Terraform is used to automate the manipulation of cloud infrastructure. Its
-[installation instructions](https://www.terraform.io/intro/getting-started/install.html) are also available online.
-
-### Configure gcloud
-
-Before running any commands, configure gcloud with the project you wish
-to use for this demo:
-
-```console
-gcloud config set project <PROJECT_ID>
 ```
 
 ## Enable the GCP Services
