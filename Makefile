@@ -122,7 +122,7 @@ create:
 # 5: Exposes the elasticsearch endpoint to your workstation so that you can seed the demo data
 .PHONY: expose
 expose:
-	$(ROOT)/scripts/expose-staging.sh
+	$(ROOT)/scripts/expose.sh
 
 # 6: Seeds the demo data via the proxy exposed in 5
 .PHONY: load
@@ -140,9 +140,9 @@ close-expose:
 	killall kubectl
 
 # 8: Expose the pyrios UI so that you can navigate to the site on localhost:8080
-.PHONY: expose-ui-staging
-expose-ui-staging:
-	$(ROOT)/scripts/expose-ui-staging.sh
+.PHONY: expose-ui 
+expose-ui:
+	$(ROOT)/scripts/expose-ui.sh
 
 # The elasticsearch portion of the demo is complete. You're welcome to tear
 # down your infrastructure right now, or if you skip the teardown, you can
