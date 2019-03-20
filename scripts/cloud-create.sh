@@ -24,6 +24,7 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -x
 
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 DEFAULT_REPO=gcr.io/$(gcloud config get-value project)
