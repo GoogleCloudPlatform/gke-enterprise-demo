@@ -140,7 +140,7 @@ close-expose:
 	killall kubectl
 
 # 8: Expose the pyrios UI so that you can navigate to the site on localhost:8080
-.PHONY: expose-ui 
+.PHONY: expose-ui
 expose-ui:
 	$(ROOT)/scripts/expose-ui.sh
 
