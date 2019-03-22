@@ -323,13 +323,11 @@ kubeconfig entry generated for cloud-cluster.
 
 ## Deploy Kubernetes Resources
 
-Run `make create`, which invokes the scripts to create all
-Kubernetes objects.  
+Run `make create`, which invokes the scripts to create all Kubernetes objects.
 
-During the creation of Kubernetes objects, a Bazel build will be triggered and new images will be created and published. 
+During the creation of Kubernetes objects, a Bazel build will be triggered and new images will be created and published.
 
-To avoid authentication error please run 
-
+To avoid authentication error please run
 ```console
 gcloud auth configure-docker
 ```
