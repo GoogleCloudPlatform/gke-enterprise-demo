@@ -25,6 +25,7 @@
 set -o errexit
 # set -o nounset
 set -o pipefail
+set -x
 
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 # shellcheck source=k8s.env
