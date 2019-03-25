@@ -56,9 +56,8 @@ kubectl --namespace default delete pvc -l component=elasticsearch,role=master ||
 
 timeout=100
 
-# Attempt to wait for the PV to be destroyed before proceeding. Most of the time the PV's are deleted immediately,
-# but in the odd chance there are PV's left behind, premature teardown of the GKE clusters (in the terraform code)
-# will result in orphaned disks
+# PV's are not deleted immediately with stateful sets. Therefore clean up and wait for PV's to be completely removed before
+# proceeding with rest of teardown of the GKE clusters (in the terraform code) in order to avoid orphaned disks
 while [ $(kubectl get pvc --all-namespaces | wc -l)  -gt 0 ]  &&  [ $(kubectl get pv --all-namespaces | wc -l ) -gt 0 ] && [ $timeout -gt 0 ]; do
 	echo "kubectl get pvc --all-namespaces"
 	kubectl get pvc --all-namespaces
