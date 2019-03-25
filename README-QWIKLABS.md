@@ -128,7 +128,6 @@ repository.
   your own project's gcr.io image repository.
 
 
-
 ### Elasticsearch Cluster HA Set Up With Regional Persistent Disks
 
 The Elasticsearch cluster uses [regional persistent disks](https://cloud.google.com/compute/docs/disks/#repds) to improve
