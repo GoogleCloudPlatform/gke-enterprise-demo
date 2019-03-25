@@ -80,10 +80,6 @@ spec:
 
        stage('Terraform') {
          container(containerName) {
-           script {
-             // you can set Terraform variables via environment variables
-             env.TF_VAR_shared_secret = "cicd"
-           }
            // This will run terraform init and terraform apply
            sh "make terraform"
          }
