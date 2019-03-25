@@ -33,7 +33,7 @@ resource "google_compute_address" "staging_public_ip_2" {
 
 // STAGING: invokes a module to create a policy based VPN, custom network/subnet, firewall rules as Cloud
 module "staging_cloud" {
-  source            = "./modules/datacenter"
+  source            = "modules/datacenter"
   project           = "${var.project}"
   network_name      = "gke-enterprise-demo-staging-cloud"
   subnet_region     = "${var.region_cloud}"
@@ -48,7 +48,7 @@ module "staging_cloud" {
 // invokes a module to create policy based VPN, custom network/subnet, firewall rules as
 // STAGING: on prem data center
 module "staging_on_prem" {
-  source            = "./modules/datacenter"
+  source            = "modules/datacenter"
   project           = "${var.project}"
   network_name      = "gke-enterprise-demo-staging-on-prem"
   subnet_region     = "${var.region_on_prem}"
