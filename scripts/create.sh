@@ -29,6 +29,6 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 echo "Installing k8s resources"
 # create on prem k8s resouces
-"$PROJECT_ROOT"/scripts/on-prem-create.sh
+# "$PROJECT_ROOT"/scripts/on-prem-create.sh
 # create cloud k8s resouces
 "$PROJECT_ROOT"/scripts/cloud-create.sh
