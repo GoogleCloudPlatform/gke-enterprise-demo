@@ -25,7 +25,6 @@ def label = "k8s-infra"
 def containerName = "k8s-node"
 def GOOGLE_APPLICATION_CREDENTIALS    = '/home/jenkins/dev/jenkins-deploy-dev-infra.json'
 
-// temporarily lock the jenkins-k8s-node version to 1.4.5 until successfully upgrade bazel to 0.20.0+
 podTemplate(label: label, yaml: """
 apiVersion: v1
 kind: Pod
@@ -35,7 +34,7 @@ metadata:
 spec:
   containers:
   - name: ${containerName}
-    image: gcr.io/pso-helmsman-cicd/jenkins-k8s-node:1.4.5
+    image: gcr.io/pso-helmsman-cicd/jenkins-k8s-node:${env.CONTAINER_VERSION}
     command: ['cat']
     tty: true
     volumeMounts:
