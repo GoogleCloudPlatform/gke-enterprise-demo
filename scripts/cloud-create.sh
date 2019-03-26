@@ -54,11 +54,13 @@ kubectl  \
   --from-literal=ES_SERVER="$LB_IP" || true
 
 bazel run \
+  --incompatible_package_name_is_a_function=false \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
   --define repo="${REPO}" \
   //pyrios-ui:k8s.apply
 bazel run \
+  --incompatible_package_name_is_a_function=false \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
   --define repo="${REPO}" \

@@ -38,11 +38,13 @@ fi
 
 # delete k8s resources
 bazel run \
+  --incompatible_package_name_is_a_function=false \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
   --define repo="${REPO}" \
   //pyrios-ui:k8s.delete
 bazel run \
+  --incompatible_package_name_is_a_function=false \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
   --define repo="${REPO}" \
