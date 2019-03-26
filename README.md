@@ -214,7 +214,7 @@ jq is used for parsing JSON output from resources within this demo.  Its [instal
 
 #### Install Bazel
 
-Bazel is the build tool used to build the pyrios images used in the demo. Its [installation instructions](https://docs.bazel.build/versions/master/install.html) are available online. At time of writing, the Bazel version tested is 0.20.0.
+Bazel is the build tool used to build the pyrios images used in the demo. Its [installation instructions](https://docs.bazel.build/versions/master/install.html) are available online. At time of writing, the Bazel version tested is 0.23.2.
 
 ### Configure gcloud
 
