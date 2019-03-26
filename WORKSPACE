@@ -28,9 +28,10 @@ load(
 
 docker_repositories()
 
+## 54e9742bd2b75facdcf30fe3a1307ca0fad17385 is master@latest
 git_repository(
     name = "io_bazel_rules_k8s",
-    commit = "62ae7911ef60f91ed32fdd48a6b837287a626a80",
+    commit = "54e9742bd2b75facdcf30fe3a1307ca0fad17385",
     remote = "https://github.com/bazelbuild/rules_k8s.git",
 )
 
@@ -59,21 +60,31 @@ k8s_defaults(
     "configmap",
 ]]
 
+# Override protbuf version to bypass compilation error
+# cf. https://github.com/bazelbuild/rules_k8s/issues/240
+http_archive(
+name = "com_google_protobuf",
+strip_prefix = "protobuf-3.6.1.3",
+urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz"],
+)
+
 # Standard bazel golang support
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.15.5/rules_go-0.15.5.tar.gz",
-    sha256 = "8f6ec7856863aac58a12c921215c8e9ab1c03cb0c570397fed4a79ade7c0bb4a",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.18.1/rules_go-0.18.1.tar.gz",
+    sha256 = "77dfd303492f2634de7a660445ee2d3de2960cbd52f97d8c0dffa9362d3ddef9",
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_rules_dependencies()
 go_register_toolchains()
+
+
 
 # gazelle rules
 http_archive(
     name = "bazel_gazelle",
-    url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.14.0/bazel-gazelle-0.14.0.tar.gz",
-    sha256 = "c0a5739d12c6d05b6c1ad56f2200cb0b57c5a70e03ebd2f7b87ce88cabf09c7b",
+    sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
+    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
