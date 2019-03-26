@@ -25,6 +25,7 @@ def label = "k8s-infra"
 def containerName = "k8s-node"
 def GOOGLE_APPLICATION_CREDENTIALS    = '/home/jenkins/dev/jenkins-deploy-dev-infra.json'
 
+// temporarily lock the jenkins-k8s-node version to 1.4.5 until successfully upgrade bazel to 0.20.0+
 podTemplate(label: label, yaml: """
 apiVersion: v1
 kind: Pod
@@ -80,10 +81,6 @@ spec:
 
        stage('Terraform') {
          container(containerName) {
-           script {
-             // you can set Terraform variables via environment variables
-             env.TF_VAR_shared_secret = "cicd"
-           }
            // This will run terraform init and terraform apply
            sh "make terraform"
          }

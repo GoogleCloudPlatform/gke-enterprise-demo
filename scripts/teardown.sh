@@ -43,7 +43,8 @@ PROJECT=$(gcloud config get-value core/project)
 
 # tear down cloud GKE objects, i.e. pyrios deployment, service and configmap
 "$PROJECT_ROOT"/scripts/cloud-destroy.sh || true
-# tear dwon on prem GKE objects, i.e. the Elasticsearch cluster
+# tear down on prem GKE objects, i.e. the Elasticsearch cluster
+
 "$PROJECT_ROOT"/scripts/on-prem-destroy.sh || true
 # bq is the 'big query' utility build into the GCP SDK.
 # Here we use it to remove all the log tables from the BQ dataset

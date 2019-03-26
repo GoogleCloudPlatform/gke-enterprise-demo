@@ -52,8 +52,17 @@ sleep "$(( GRACE + PADDING ))"
 # This is done to ensure data safety, which is generally more valuable
 # than an automatic purge of all related StatefulSet resources.
 kubectl --namespace default delete pvc -l component=elasticsearch,role=data || true
+kubectl --namespace default delete pvc -l component=elasticsearch,role=master || true
 
-echo "kubectl get pvc --all-namespaces"
-kubectl get pvc --all-namespaces
-echo "kubectl get pv --all-namespaces"
-kubectl get pv --all-namespaces
+timeout=100
+
+# PV's are not deleted immediately with stateful sets. Therefore clean up and wait for PV's to be completely removed before
+# proceeding with rest of teardown of the GKE clusters (in the terraform code) in order to avoid orphaned disks
+while [ $(kubectl get pvc --all-namespaces | wc -l)  -gt 0 ]  &&  [ $(kubectl get pv --all-namespaces | wc -l ) -gt 0 ] && [ $timeout -gt 0 ]; do
+	echo "kubectl get pvc --all-namespaces"
+	kubectl get pvc --all-namespaces
+	echo "kubectl get pv --all-namespaces"
+	kubectl get pv --all-namespaces
+	sleep 10
+	timeout=$((timeout - 10))
+done
