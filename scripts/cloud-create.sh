@@ -53,16 +53,13 @@ kubectl  \
   create configmap esconfig \
   --from-literal=ES_SERVER="$LB_IP" || true
 
-# Note:  the Bazel flag incompatible_package_name_is_a_function, while necessary for a successful build, is only valid in Bazel v0.21.
-# This flag is deprecated in Bazel v0.22+
 bazel run \
-  --incompatible_package_name_is_a_function=false \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
   --define repo="${REPO}" \
   //pyrios-ui:k8s.apply
+
 bazel run \
-  --incompatible_package_name_is_a_function=false \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
   --define repo="${REPO}" \

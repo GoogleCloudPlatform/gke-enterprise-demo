@@ -102,11 +102,15 @@ bootstrap:
 	  bigquery-json.googleapis.com
 
 # 2: Terraform is used to manage the larger infrastructure components
-.PHONY: terraform
-terraform:
+
+.PHONY: terraform_preapply
+terraform_preapply:
 	terraform init terraform/
 	terraform validate -check-variables=false terraform/
 	terraform plan -var "project=$(PROJECT)" -out=tfplan terraform/
+
+.PHONY: terraform
+terraform: terraform_preapply
 	terraform apply tfplan
 
 # 3. We will not be checking secrets into version control. This helps manage that process
