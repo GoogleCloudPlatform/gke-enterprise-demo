@@ -37,11 +37,11 @@ Bazel pipeline and workflow.
 
 Some of the highlights included are:
 
-* Rolling upgrades
+* Role-based access control
 * k8s services
 * Using Cloud VPN to connect disparate networks
 * Terraform as IAC
-* Using Google Cloud Build
+* Using Bazel build tool
 * Using Stackdriver tracing
 * Using Stackdriver monitoring
 
@@ -120,21 +120,6 @@ Under `manifests` folder
 * `clusterrolebinding.yaml`: a ClusterRoleBinding `elasticsearch-data` to bind
 the cluster role and service account declared in the above.
 
-
-### Build and Push Pyrios Docker Image
-
-This step is only necessary if you are interested in building and pushing
-your own `pyrios` docker image onto your own project's gcr.io image
-repository.
-
-* The demo itself uses a public image lives at
-  gcr.io/pso-example/pyrios.
-* `cd pyrios && make container` uses the GCB(Google Container Builder)
-  for building and pushing docker image to gcr.io/${PROJECT_ID}, i.e.
-  your own project's gcr.io image repository.
-
-
-
 ### Elasticsearch Cluster HA Set Up With Regional Persistent Disks
 
 The Elasticsearch cluster uses [regional persistent disks](https://cloud.google.com/compute/docs/disks/#repds) to improve
@@ -158,7 +143,6 @@ gke-on-prem-cluster-f1-pvc-9cf7b9b3-6472-11e8-a9b6-42010a800140  us-west1  regio
 gke-on-prem-cluster-f1-pvc-b169f561-6472-11e8-a9b6-42010a800140  us-west1  region          13       pd-standard  READY
 gke-on-prem-cluster-f1-pvc-bcc115d6-6472-11e8-a9b6-42010a800140  us-west1  region          13       pd-standard  READY
 ```
-
 
 ## Prerequisites
 
@@ -214,7 +198,7 @@ jq is used for parsing JSON output from resources within this demo.  Its [instal
 
 #### Install Bazel
 
-Bazel is the build tool used to build the pyrios images used in the demo. Its [installation instructions](https://docs.bazel.build/versions/master/install.html) are available online. At time of writing, the Bazel version tested is 0.23.2.
+Bazel is the build tool used to build the pyrios images used in the demo. Its [installation instructions](https://docs.bazel.build/versions/master/install.html) are available online. At time of writing, the latest Bazel version tested is 0.24.0.
 
 ### Configure gcloud
 
@@ -281,6 +265,7 @@ Initializing modules...
   Getting source "modules/datacenter"
 - module.on-prem
   Getting source "modules/datacenter"
+```
 
 Initializing provider plugins...
 - Checking for available provider plugins on https://releases.hashicorp.com...
@@ -323,7 +308,11 @@ kubeconfig entry generated for cloud-cluster.
 
 ## Deploy Kubernetes Resources
 
-Run `make create`, which invokes the scripts to create all Kubernetes objects.
+To invokes the scripts to create all Kubernetes objects, run
+
+```console
+make create
+```
 
 During the creation of Kubernetes objects, a Bazel build will be triggered and new images will be created and published.
 
@@ -383,14 +372,17 @@ Loading data into the Elasticsearch cluster
 
 ## Validation
 
-Run `make validate` validates the Elasticsearch cluster by invoking its
-REST API. The scripts checks cluster version, health, sample data as well as a
-couple of types of queries (called query DSL in Elasticsearch term)
-on the sample data.
+To validate the Elasticsearch cluster by invoking its
+REST API, run
 
 ```console
 make validate
 ```
+
+The scripts checks cluster version, health, sample data as well as a
+couple of types of queries (called query DSL in Elasticsearch term)
+on the sample data.
+
 
 Example output:
 
@@ -407,9 +399,15 @@ Shakespeare match query on speaker LEONATO has the expected numbers of hits
 The web-based UI is equivalent to the **validate.sh** script. It queries
 Elasticsearch through the Pyrios proxy and verifies that all the data looks
 correct.
+
 The web-based UI also demonstrates usage of Stackdriver Tracing and custom
-Stackdriver metrics. You can view the UI by running `make expose-ui`. You will
-need to have port 8080 available on your machine before running
+Stackdriver metrics. You can view the UI by running
+
+```console
+make expose-ui
+```
+
+You will need to have port 8080 available on your machine before running
 `make expose-ui`. In your browser visit
 [localhost:8080](http://localhost:8080). Each
 time the UI page is refreshed it creates traces and metrics.
@@ -417,11 +415,8 @@ time the UI page is refreshed it creates traces and metrics.
 The custom metric is called `custom/pyrios-ui/numberOfLeonatoHits` and can
 be found in the global resource.
 
-There are two traces:
-1. pyrios-request - this is an actual Elasticsearch call through the pyrios
-proxy
-2. pyrios-ui-request - this is the UI being loaded and making numerous calls
-to pyrios
+There is a trace of `pyrios-ui`, which indicates the UI being loaded and making numerous calls
+to pyrios.
 
 
 ## Teardown
