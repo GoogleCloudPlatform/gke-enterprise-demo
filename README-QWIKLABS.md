@@ -31,11 +31,11 @@ Bazel pipeline and workflow.
 
 Some of the highlights included are:
 
-* Rolling upgrades
+* Role-based access control
 * k8s services
 * Using Cloud VPN to connect disparate networks
 * Terraform as IAC
-* Using Google Cloud Build
+* Using Bazel build tool
 * Using Stackdriver tracing
 * Using Stackdriver monitoring
 
@@ -114,20 +114,6 @@ Under `manifests` folder
 * `clusterrolebinding.yaml`: a ClusterRoleBinding `elasticsearch-data` to bind
 the cluster role and service account declared in the above.
 
-
-### Build and Push Pyrios Docker Image
-
-This step is only necessary if you are interested in building and pushing
-your own `pyrios` docker image onto your own project's gcr.io image
-repository.
-
-* The demo itself uses a public image lives at
-  gcr.io/pso-example/pyrios.
-* `cd pyrios && make container` uses the GCB(Google Container Builder)
-  for building and pushing docker image to gcr.io/${PROJECT_ID}, i.e.
-  your own project's gcr.io image repository.
-
-
 ### Elasticsearch Cluster HA Set Up With Regional Persistent Disks
 
 The Elasticsearch cluster uses [regional persistent disks](https://cloud.google.com/compute/docs/disks/#repds) to improve
@@ -140,17 +126,19 @@ says 'region'.
 Execute:
 
 ```console
-gcloud beta compute disks list --filter="region:us-west1"
+gcloud beta compute disks list --filter="region:us-central1"
 ```
 
 Example output:
 
 ```console
 NAME                                                             LOCATION     LOCATION_SCOPE  SIZE_GB  TYPE         STATUS
-gke-on-prem-cluster-f1-pvc-9cf7b9b3-6472-11e8-a9b6-42010a800140  us-west1  region          13       pd-standard  READY
-gke-on-prem-cluster-f1-pvc-b169f561-6472-11e8-a9b6-42010a800140  us-west1  region          13       pd-standard  READY
-gke-on-prem-cluster-f1-pvc-bcc115d6-6472-11e8-a9b6-42010a800140  us-west1  region          13       pd-standard  READY
+gke-on-prem-cluster-f1-pvc-9cf7b9b3-6472-11e8-a9b6-42010a800140  us-central1  region          13       pd-standard  READY
+gke-on-prem-cluster-f1-pvc-b169f561-6472-11e8-a9b6-42010a800140  us-central1  region          13       pd-standard  READY
+gke-on-prem-cluster-f1-pvc-bcc115d6-6472-11e8-a9b6-42010a800140  us-central1  region          13       pd-standard  READY
 ```
+
+At the beginning of the lab though, there should be no pre-existing disks found.
 
 
 ## Configure gcloud
@@ -338,21 +326,21 @@ The web-based UI is equivalent to the **validate.sh** script. It queries
 Elasticsearch through the Pyrios proxy and verifies that all the data looks
 correct.
 The web-based UI also demonstrates usage of Stackdriver Tracing and custom
-Stackdriver metrics. You can view the UI by running `make expose-ui`. You will
-need to have port 8080 available on your machine before running
-`make expose-ui`. In your browser visit
-[localhost:8080](http://localhost:8080). Each
-time the UI page is refreshed it creates traces and metrics.
+Stackdriver metrics. You can view the UI by running
+
+
+```console
+make expose-ui
+```
+
+Click the button `web preview` and set the port to `8080`.  A new tab will open showing the UI.
+Each time the UI page is refreshed it creates traces and metrics.
 
 The custom metric is called `custom/pyrios-ui/numberOfLeonatoHits` and can
 be found in the global resource.
 
-There are two traces:
-1. pyrios-request - this is an actual Elasticsearch call through the pyrios
-proxy
-2. pyrios-ui-request - this is the UI being loaded and making numerous calls
-to pyrios
-
+There is a trace of `pyrios-ui`, which indicates the UI being loaded and making numerous calls
+to pyrios.
 
 ## Teardown
 
@@ -365,8 +353,12 @@ It will run the following commands:
 3. terraform destroy - it prompts you for a shared secret for VPN and
    then destroys the all the project infrastructure
 
-In order to teardown, run `make
-teardown`.
+In order to teardown, run
+
+```console
+make teardown
+```
+
 
 You should see output similar to this:
 ```
