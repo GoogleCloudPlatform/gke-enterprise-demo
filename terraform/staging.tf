@@ -23,7 +23,7 @@ limitations under the License.
 // Reserve regional external (static) IP addresses
 
 locals {
-  resource_labels = "${merge(var.labels, map("owner", data.external.account.result.gcloud_account) )}"
+  resource_labels = "${merge(var.labels, map("owner", data.external.account.result.gcloud_account))}"
 }
 
 resource "google_compute_address" "staging_public_ip_1" {

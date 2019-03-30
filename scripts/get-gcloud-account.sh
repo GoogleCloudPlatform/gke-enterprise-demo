@@ -16,9 +16,10 @@
 
 ## This script is used exclusively by terraform to determine the account currently logged in
 ## This script is called using the external provider from Terraform
+## Because a label can only have 63 bytes, truncate to 63 characters
 
 set -e
-gcloud_account=$(gcloud config get-value core/account | sed -e 's/[^-_[:alnum:]]/_/g')
+gcloud_account=$(gcloud config get-value core/account | sed -e 's/[^-_[:alnum:]]/_/g' | cut -c -63 )
 
 ## Terraform external provider requires that the output of the script to be a valid JSON string
 jq -n --arg name $gcloud_account '{"gcloud_account": $name}'
