@@ -33,7 +33,7 @@ variable "zone_on_prem" {
 }
 
 variable "zone_on_prem_failover" {
-  type = "list"
+  type    = "list"
   default = ["us-central1-b", "us-central1-c"]
 }
 
@@ -67,4 +67,10 @@ variable "on_prem" {
 
 variable "gke_master_version" {
   default = "latest"
+}
+
+// this map should be set should more labels be required to identify the container clusters and node groups
+variable "labels" {
+  type    = "map"
+  default = {}
 }

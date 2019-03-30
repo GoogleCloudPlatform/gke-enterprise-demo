@@ -21,6 +21,11 @@ limitations under the License.
 
 // https://cloud.google.com/vpn/docs/how-to/creating-policy-based-vpns
 // Reserve regional external (static) IP addresses
+
+locals {
+  resource_labels = "${merge(var.labels, map("owner", data.external.account.result.gcloud_account) )}"
+}
+
 resource "google_compute_address" "staging_public_ip_1" {
   name   = "gke-enterprise-demo-cloud-public-ip-1"
   region = "${var.region_cloud}"
@@ -75,6 +80,8 @@ resource "google_container_cluster" "staging_on_prem_cluster" {
   initial_node_count = 1
 
   min_master_version = "${var.gke_master_version}"
+
+  resource_labels = "${local.resource_labels}"
 
   ip_allocation_policy {
     cluster_secondary_range_name = "${module.staging_on_prem.secondary_range_name}"
@@ -135,6 +142,8 @@ resource "google_container_cluster" "staging_cloud_cluster" {
   initial_node_count = 1
 
   min_master_version = "${var.gke_master_version}"
+
+  resource_labels = "${local.resource_labels}"
 
   ip_allocation_policy {
     cluster_secondary_range_name = "${module.staging_cloud.secondary_range_name}"
