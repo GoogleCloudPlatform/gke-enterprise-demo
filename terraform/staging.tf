@@ -21,6 +21,11 @@ limitations under the License.
 
 // https://cloud.google.com/vpn/docs/how-to/creating-policy-based-vpns
 // Reserve regional external (static) IP addresses
+
+locals {
+  resource_labels = "${merge(var.labels, map("owner", data.external.account.result.gcloud_account))}"
+}
+
 resource "google_compute_address" "staging_public_ip_1" {
   name   = "gke-enterprise-demo-cloud-public-ip-1"
   region = "${var.region_cloud}"
@@ -76,21 +81,14 @@ resource "google_container_cluster" "staging_on_prem_cluster" {
 
   min_master_version = "${var.gke_master_version}"
 
+  resource_labels = "${local.resource_labels}"
+
   ip_allocation_policy {
     cluster_secondary_range_name = "${module.staging_on_prem.secondary_range_name}"
   }
 
-  node_config {
-    machine_type = "${lookup(var.on_prem, "machine_type")}"
-
-    // https://cloud.google.com/kubernetes-engine/docs/how-to/access-scopes
-    // Enable private gcr.io read access for the same project
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring",
-    ]
-  }
+  remove_default_node_pool = true
+  initial_node_count       = 1
 
   addons_config {
     network_policy_config {
@@ -109,6 +107,31 @@ resource "google_container_cluster" "staging_on_prem_cluster" {
   }
 }
 
+resource "google_container_node_pool" "staging_on_prem_cluster" {
+  name    = "gke-enterprise-staging-on-prem-node-pool"
+  project = "${var.project}"
+
+  cluster    = "${google_container_cluster.staging_on_prem_cluster.name}"
+  zone       = "${var.zone_on_prem}"
+  node_count = 1
+
+  node_config {
+    machine_type = "${lookup(var.on_prem, "machine_type")}"
+
+    // https://cloud.google.com/kubernetes-engine/docs/how-to/access-scopes
+    // Enable private gcr.io read access for the same project
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = ["id", "node_config.0.metadata"]
+  }
+}
+
 // Creates a Google Kubernetes Engine (GKE) cluster for the cloud
 // https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "staging_cloud_cluster" {
@@ -120,9 +143,37 @@ resource "google_container_cluster" "staging_cloud_cluster" {
 
   min_master_version = "${var.gke_master_version}"
 
+  resource_labels = "${local.resource_labels}"
+
   ip_allocation_policy {
     cluster_secondary_range_name = "${module.staging_cloud.secondary_range_name}"
   }
+
+  remove_default_node_pool = true
+  initial_node_count       = 1
+
+  addons_config {
+    network_policy_config {
+      disabled = false
+    }
+  }
+
+  network_policy {
+    enabled  = true
+    provider = "CALICO" // CALICO is currently the only supported provider
+  }
+
+  lifecycle {
+    ignore_changes = ["network", "subnetwork", "ip_allocation_policy.0.services_secondary_range_name"]
+  }
+}
+
+resource "google_container_node_pool" "staging_cloud_cluster" {
+  name       = "gke-enterprise-staging-cloud-node-pool"
+  project    = "${var.project}"
+  cluster    = "${google_container_cluster.staging_cloud_cluster.name}"
+  zone       = "${var.zone_cloud}"
+  node_count = 1
 
   node_config {
     machine_type = "${lookup(var.cloud, "machine_type")}"
@@ -140,21 +191,9 @@ resource "google_container_cluster" "staging_cloud_cluster" {
     ]
   }
 
-  addons_config {
-    network_policy_config {
-      disabled = false
-    }
-  }
-
-  network_policy {
-    enabled  = true
-    provider = "CALICO" // CALICO is currently the only supported provider
-  }
-
   lifecycle {
-    ignore_changes = ["network", "subnetwork", "ip_allocation_policy.0.services_secondary_range_name"]
+    ignore_changes = ["id", "node_config.0.metadata"]
   }
-
 }
 
 resource "google_bigquery_dataset" "staging-log-sink-dataset" {

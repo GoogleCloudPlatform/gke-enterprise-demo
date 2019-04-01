@@ -19,3 +19,7 @@ limitations under the License.
 data "google_container_engine_versions" "gke_version" {
   zone = "${var.zone_on_prem}"
 }
+
+data "external" "account" {
+  program = ["sh", "${path.module}/../scripts/get-gcloud-account.sh"]
+}
