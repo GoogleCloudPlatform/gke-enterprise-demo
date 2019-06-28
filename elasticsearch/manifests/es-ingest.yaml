@@ -43,7 +43,7 @@ spec:
           privileged: true
       containers:
       - name: es-ingest
-        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
         # The configuration settings for Elasticsearch docker containers can be set via environment variables.
         # For more information see:
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-configuration-methods
