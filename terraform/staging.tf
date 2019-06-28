@@ -105,6 +105,12 @@ resource "google_container_cluster" "staging_on_prem_cluster" {
   lifecycle {
     ignore_changes = ["network", "subnetwork", "ip_allocation_policy.0.services_secondary_range_name"]
   }
+
+  timeouts {
+    create = "30m"
+    update = "40m"
+    delete = "30m"
+  }
 }
 
 resource "google_container_node_pool" "staging_on_prem_cluster" {
@@ -166,6 +172,13 @@ resource "google_container_cluster" "staging_cloud_cluster" {
   lifecycle {
     ignore_changes = ["network", "subnetwork", "ip_allocation_policy.0.services_secondary_range_name"]
   }
+
+  timeouts {
+    create = "30m"
+    update = "40m"
+    delete = "30m"
+  }
+
 }
 
 resource "google_container_node_pool" "staging_cloud_cluster" {

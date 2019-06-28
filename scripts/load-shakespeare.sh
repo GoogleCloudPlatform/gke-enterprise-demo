@@ -34,6 +34,7 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 # https://download.elastic.co/demos/kibana/gettingstarted/shakespeare_6.0.json
 
 # Load the index mapping
+# Ex mapping: https://www.elastic.co/guide/en/elasticsearch/reference/current/text.html
 echo "Loading the index into the Elasticsearch cluster"
 curl "http://localhost:9200/shakespeare" \
   -s \
@@ -44,8 +45,9 @@ curl "http://localhost:9200/shakespeare" \
 echo " "
 echo "Loading the data into the Elasticsearch cluster"
 
-curl "http://localhost:9200/shakespeare/doc/_bulk?pretty" \
+# https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html#_load_the_data_sets
+curl "http://localhost:9200/shakespeare/_bulk?pretty" \
     -H "Content-Type: application/x-ndjson" \
    --retry 5 \
-   --data-binary @"$PROJECT_ROOT"/elasticsearch/data/shakespeare_6.0.json
+   --data-binary @"$PROJECT_ROOT"/elasticsearch/data/shakespeare_7.x.json
 

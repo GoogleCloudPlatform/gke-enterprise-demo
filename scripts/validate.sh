@@ -39,7 +39,7 @@ fail() {
 }
 
 # Validate ES version
-EXPECTED_ES_VERSION=6.5.4
+EXPECTED_ES_VERSION=7.1.1
 ES_VERSION=$(curl -s http://localhost:9200/ | jq -r '.version.number')
 if [[ "$ES_VERSION" == "$EXPECTED_ES_VERSION" ]]
 then
@@ -61,7 +61,7 @@ fi
 
 sleep 1
 # Validate if the shakespare index exists and has the right number of shards
-EXPECTED_NO_OF_SHARDS=5
+EXPECTED_NO_OF_SHARDS=1
 NO_OF_SHARDS=$(curl -s -X GET "localhost:9200/shakespeare" | jq -r '.shakespeare.settings.index.number_of_shards // empty')
 if [[ -z "$NO_OF_SHARDS" ]]; then
      fail "Please check if shakespeare data has been loaded"

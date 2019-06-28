@@ -389,7 +389,7 @@ Example output:
 ```console
 Elasticsearch version matched
 Elasticsearch cluster status is green
-Shakespeare data has the expected number of shards
+Shakespeare data has the expected number of shard(s)
 Shakespeare match_all query has the expected numbers of hits
 Shakespeare match query on speaker LEONATO has the expected numbers of hits
 ```
