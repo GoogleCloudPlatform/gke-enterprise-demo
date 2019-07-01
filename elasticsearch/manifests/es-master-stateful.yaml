@@ -66,7 +66,7 @@ spec:
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/discovery-settings.html#unicast.hosts
         - name: discovery.zen.ping.unicast.hosts
           value: elasticsearch-discovery
-        # https://www.elastic.co/guide/en/elasticsearch/reference/7.1/docker.html 
+        # https://www.elastic.co/guide/en/elasticsearch/reference/7.1/docker.html
         # --> initial master nodes as a comma-separated list
         - name: cluster.initial_master_nodes
           value: es-master-0, es-master-1, es-master-2
