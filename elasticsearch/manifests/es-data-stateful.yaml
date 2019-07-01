@@ -49,21 +49,23 @@ spec:
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
       affinity:
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: component
-                operator: In
-                values:
-                  - elasticsearch
-              - key: role
-                operator: In
-                values:
-                - data
-            topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                    - elasticsearch
+                - key: role
+                  operator: In
+                  values:
+                  - data
+              topologyKey: kubernetes.io/hostname
+            weight: 1
       containers:
       - name: es-data
-        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
         # The configuration settings for Elasticsearch docker containers can be set via environment variables.
         # For more information see:
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-configuration-methods
