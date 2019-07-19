@@ -16,7 +16,7 @@ limitations under the License.
 
 // Required variables
 variable "project" {
-  type = "string"
+  type = string
 }
 
 // Optional variables
@@ -33,7 +33,7 @@ variable "zone_on_prem" {
 }
 
 variable "zone_on_prem_failover" {
-  type    = "list"
+  type    = list(string)
   default = ["us-central1-b", "us-central1-c"]
 }
 
@@ -43,7 +43,7 @@ variable "zone_cloud" {
 
 variable "cloud" {
   description = "the cloud"
-  type        = "map"
+  type        = map(string)
 
   default = {
     primary_range     = "10.1.0.0/17"
@@ -55,7 +55,7 @@ variable "cloud" {
 
 variable "on_prem" {
   description = "the on prem dc"
-  type        = "map"
+  type        = map(string)
 
   default = {
     primary_range     = "10.2.0.0/17"
@@ -71,6 +71,6 @@ variable "gke_master_version" {
 
 // this map should be set should more labels be required to identify the container clusters and node groups
 variable "labels" {
-  type    = "map"
+  type    = map(string)
   default = {}
 }
