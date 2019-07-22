@@ -167,7 +167,6 @@ resource "google_container_cluster" "staging_cloud_cluster" {
   }
 
   remove_default_node_pool = true
-  /* initial_node_count       = 1 */
 
   addons_config {
     network_policy_config {
