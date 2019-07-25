@@ -36,7 +36,7 @@ USAGE: $(basename "$0") <new-elasticsearch-version>
 
 Where <new-elasticsearch-version> is a tag available in this
 Docker repository:
-https://quay.io/repository/pires/docker-elasticsearch-kubernetes?tab=tags
+https://www.docker.elastic.co/#elasticsearch
 EOM
   exit 1
 }
@@ -99,7 +99,7 @@ update_deployment() {
   # kubectl patch can be used to update resource objects
   # https://kubernetes.io/docs/tasks/run-application/update-api-object-kubectl-patch/
   kubectl --namespace default patch deployment "${NAME}" \
-    -p '{"spec":{"template":{"spec":{"containers":[{"name":"'"${NAME}"'","image":"quay.io/pires/docker-elasticsearch-kubernetes:'"${VERSION}"'"}]}}}}'
+    -p '{"spec":{"template":{"spec":{"containers":[{"name":"'"${NAME}"'","image":"docker.elastic.co/elasticsearch/elasticsearch:'"${VERSION}"'"}]}}}}'
   # Monitor the upgrade as it progresses
   kubectl rollout status deployment "${NAME}"
 }
@@ -182,7 +182,7 @@ update_statefulset() {
 
   echo "Updating the ${NAME} Statefulset to Elasticsearch version ${VERSION}..."
   kubectl --namespace default patch statefulset "${NAME}" -p \
-    '{"spec":{"template":{"spec":{"containers":[{"name":"'"${NAME}"'","image":"quay.io/pires/docker-elasticsearch-kubernetes:'"${VERSION}"'"}]}}}}' || true
+    '{"spec":{"template":{"spec":{"containers":[{"name":"'"${NAME}"'","image":"docker.elastic.co/elasticsearch/elasticsearch:'"${VERSION}"'"}]}}}}' || true
 
   # For a statefulset with 3 replicas, this will loop three times wth the
   # 'ORDINAL' values 2, 1, and 0

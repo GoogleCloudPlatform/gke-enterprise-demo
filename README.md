@@ -492,8 +492,8 @@ service "elasticsearch-discovery" deleted
 * [Get higher availability with Regional Persistent Disks on Google
   Kubernetes
   Engine](https://cloudplatform.googleblog.com/2018/05/Get-higher-availability-with-Regional-Persistent-Disks-on-Google-Kubernetes-Engine.html?m=1)
-* [pires Elasticsearch
-  project](https://github.com/pires/kubernetes-elasticsearch-cluster)
+* [Elasticsearch
+  docker images repo](https://github.com/elastic/elasticsearch-docker)
 * [ElasticSearch Cluster Sample
   data](https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html)
 * [ElasticSearch bulk load
