@@ -130,7 +130,7 @@ go_repository(
 go_repository(
     name = "com_github_tidwall_gjson",
     importpath = "github.com/tidwall/gjson",
-    tag = "v1.1.3",
+    tag = "v1.3.0",
 )
 
 go_repository(
