@@ -106,7 +106,7 @@ bootstrap:
 .PHONY: terraform_preapply
 terraform_preapply:
 	terraform init terraform/
-	terraform validate -check-variables=false terraform/
+	terraform validate terraform/
 	terraform plan -var "project=$(PROJECT)" -out=tfplan terraform/
 
 .PHONY: terraform
