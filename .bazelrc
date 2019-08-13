@@ -1,0 +1,1 @@
+common --incompatible_disable_deprecated_attr_params=false

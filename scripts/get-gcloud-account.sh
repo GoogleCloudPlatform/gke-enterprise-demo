@@ -22,4 +22,4 @@ set -e
 gcloud_account=$(gcloud config get-value core/account | sed -e 's/[^-_[:alnum:]]/_/g' | cut -b -63 )
 
 ## Terraform external provider requires that the output of the script to be a valid JSON string
-jq -n --arg name $gcloud_account '{"gcloud_account": $name}'
+jq -n --arg name "${gcloud_account}" '{"gcloud_account": $name}'

@@ -29,7 +29,7 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 DEFAULT_REPO=gcr.io/$(gcloud config get-value project)
 REPO=${CONTAINER_REPO:-$DEFAULT_REPO}
 
-# shellcheck source=k8s.env
+# shellcheck source=k8s.env disable=SC1091
 source "$PROJECT_ROOT"/k8s.env
 
 CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"
@@ -52,7 +52,7 @@ kubectl  \
   --context="${CONTEXT}" \
   create configmap esconfig \
   --from-literal=ES_SERVER="$LB_IP" || true
-
+exit
 bazel run \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
