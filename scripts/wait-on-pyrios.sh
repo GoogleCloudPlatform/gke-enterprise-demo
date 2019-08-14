@@ -32,5 +32,5 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 source "$PROJECT_ROOT"/k8s.env
 
 # wait on pyrios to load
-kubectl --namespace default --context="$STAGING_CLOUD_GKE_CONTEXT" --timeout="5m" \
+kubectl --namespace default --context="$STAGING_CLOUD_GKE_CONTEXT" --timeout="10m" \
   rollout status deployment/pyrios
