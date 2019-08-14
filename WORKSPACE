@@ -166,13 +166,13 @@ go_repository(
 
 go_repository(
    name = "org_golang_x_net",
-   importpath = "golang.org/x/net", 
-   commit = "b3c676e531a6dc479fa1b35ac961c13f5e2b4d2e", #
+   importpath = "golang.org/x/net",
+   commit = "b3c676e531a6dc479fa1b35ac961c13f5e2b4d2e",
 )
 
 go_repository(
    name = "org_golang_x_unix",
-   importpath = "golang.org/x/unix", 
+   importpath = "golang.org/x/unix",
 )
 
 go_repository(
@@ -180,18 +180,11 @@ go_repository(
     importpath = "github.com/golang/text",
     commit = "342b2e1fbaa52c93f31447ad2c6abc048c63e475",
 )
-#go_repository(
-#   name = "org_golang_x_text",
-#   importpath = "github.com/golang/text",
-#   commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0", # v0.3.0
-#   #commit = "c4d099d611ac3ded35360abf03581e13d91c828f", # v0.2.0
-#   #commit = "ab5ac5f9a8deb4855a60fab02bc61a4ec770bd49", # v0.1.0
-#)
 
 go_repository(
    name = "org_golang_x_sys",
-   importpath = "github.com/golang/sys", 
-   commit = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3", #
+   importpath = "github.com/golang/sys",
+   commit = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3",
 )
 
 go_repository(
