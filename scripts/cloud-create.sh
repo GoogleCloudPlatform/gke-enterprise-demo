@@ -52,7 +52,7 @@ kubectl  \
   --context="${CONTEXT}" \
   create configmap esconfig \
   --from-literal=ES_SERVER="$LB_IP" || true
-exit
+
 bazel run \
   --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 \
   --define cluster="${CONTEXT}" \
