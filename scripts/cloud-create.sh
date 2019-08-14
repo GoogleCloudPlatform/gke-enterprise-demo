@@ -29,7 +29,7 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 DEFAULT_REPO=gcr.io/$(gcloud config get-value project)
 REPO=${CONTAINER_REPO:-$DEFAULT_REPO}
 
-# shellcheck source=k8s.env
+# shellcheck source=k8s.env disable=SC1091
 source "$PROJECT_ROOT"/k8s.env
 
 CONTEXT="${STAGING_ON_PREM_GKE_CONTEXT}"

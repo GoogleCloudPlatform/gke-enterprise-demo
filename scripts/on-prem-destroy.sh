@@ -26,7 +26,7 @@ set -o errexit
 
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-# shellcheck source=k8s.env
+# shellcheck source=k8s.env disable=SC1091
 source "$PROJECT_ROOT"/k8s.env
 
 context="${STAGING_ON_PREM_GKE_CONTEXT}"
@@ -58,11 +58,11 @@ timeout=100
 
 # PV's are not deleted immediately with stateful sets. Therefore clean up and wait for PV's to be completely removed before
 # proceeding with rest of teardown of the GKE clusters (in the terraform code) in order to avoid orphaned disks
-while [ $(kubectl get pvc --all-namespaces | wc -l)  -gt 0 ]  &&  [ $(kubectl get pv --all-namespaces | wc -l ) -gt 0 ] && [ $timeout -gt 0 ]; do
+while [ "$(kubectl get pvc --all-namespaces | wc -l)"  -gt 0 ]  &&  [ "$(kubectl get pv --all-namespaces | wc -l )" -gt 0 ] && [ "$timeout" -gt 0 ]; do
 	echo "kubectl get pvc --all-namespaces"
 	kubectl get pvc --all-namespaces
 	echo "kubectl get pv --all-namespaces"
 	kubectl get pv --all-namespaces
 	sleep 10
-	timeout=$((timeout - 10))
+	timeout="$((timeout - 10))"
 done

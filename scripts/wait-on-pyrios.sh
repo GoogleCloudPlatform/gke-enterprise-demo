@@ -28,9 +28,9 @@ set -o nounset
 set -o pipefail
 
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-# shellcheck source=k8s.env
+# shellcheck source=k8s.env disable=SC1091
 source "$PROJECT_ROOT"/k8s.env
 
 # wait on pyrios to load
-kubectl --namespace default --context="$STAGING_CLOUD_GKE_CONTEXT" --timeout="5m" \
+kubectl --namespace default --context="$STAGING_CLOUD_GKE_CONTEXT" --timeout="10m" \
   rollout status deployment/pyrios

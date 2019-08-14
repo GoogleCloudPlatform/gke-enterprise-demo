@@ -25,7 +25,7 @@ set -o errexit
 
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-# shellcheck source=k8s.env
+# shellcheck source=k8s.env disable=SC1091
 source "$PROJECT_ROOT"/k8s.env
 
 CONTEXT="${STAGING_CLOUD_GKE_CONTEXT}"

@@ -50,7 +50,7 @@ fi
 command -v kubectl >/dev/null || fail "kubectl is not installed!"
 command -v jq >/dev/null || fail "jq is not installed!"
 
-# shellcheck source=./k8s.env
+# shellcheck source=./k8s.env disable=SC1091
 source "$PROJECT_ROOT"/k8s.env
 
 # disable_shard_allocation() - Sets the cluster.routing.allocation.enable
