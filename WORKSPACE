@@ -31,7 +31,7 @@ docker_repositories()
 ## 54e9742bd2b75facdcf30fe3a1307ca0fad17385 is master@latest
 git_repository(
     name = "io_bazel_rules_k8s",
-    commit = "1e7094497a4bad54eb7baf47cdcb098e7219f362",
+    commit = "26b1b471b4c2af39c4e2fedb2b25a3940b531a99",
     remote = "https://github.com/bazelbuild/rules_k8s.git",
 )
 
