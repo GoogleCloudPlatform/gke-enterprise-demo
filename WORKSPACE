@@ -16,9 +16,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "io_bazel_rules_docker",
-    sha256 = "35c585261362a96b1fe777a7c4c41252b22fd404f24483e1c48b15d7eb2b55a5",
-    strip_prefix = "rules_docker-4282829a554058401f7ff63004c8870c8d35e29c",
-    urls = ["https://github.com/bazelbuild/rules_docker/archive/4282829a554058401f7ff63004c8870c8d35e29c.tar.gz"],
+    sha256 = "79a6f43af02b94a08681e6796f7c7e881f5b9f382007582fe106c5f56a360bca",
+    strip_prefix = "rules_docker-363e12da417e6fa9dd447af5411b14489ea37ac4",
+    urls = ["https://github.com/bazelbuild/rules_docker/archive/363e12da417e6fa9dd447af5411b14489ea37ac4.tar.gz"],
 )
 
 load(
