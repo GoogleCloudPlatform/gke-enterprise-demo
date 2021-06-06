@@ -184,5 +184,5 @@ go_repository(
 go_repository(
     name = "org_golang_google_grpc",
     importpath = "google.golang.org/grpc",
-    tag = "v1.15.1",
+    tag = "v1.38.0",
 )
