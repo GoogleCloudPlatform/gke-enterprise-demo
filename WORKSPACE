@@ -136,7 +136,7 @@ go_repository(
 go_repository(
     name = "io_opencensus_go_contrib_exporter_stackdriver",
     importpath = "contrib.go.opencensus.io/exporter/stackdriver",
-    tag = "v0.6.0",
+    tag = "v0.13.8",
 )
 
 go_repository(
