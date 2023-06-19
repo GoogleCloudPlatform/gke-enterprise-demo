@@ -93,9 +93,9 @@ gazelle_dependencies()
 # bazel rules for docker
 http_archive(
     name = "io_bazel_rules_docker",
-    sha256 = "29d109605e0d6f9c892584f07275b8c9260803bf0c6fcb7de2623b2bedc910bd",
-    strip_prefix = "rules_docker-0.5.1",
-    urls = ["https://github.com/bazelbuild/rules_docker/archive/v0.5.1.tar.gz"],
+    sha256 = "07ee8ca536080f5ebab6377fc6e8920e9a761d2ee4e64f0f6d919612f6ab56aa",
+    strip_prefix = "rules_docker-0.25.0",
+    urls = ["https://github.com/bazelbuild/rules_docker/archive/v0.25.0.tar.gz"],
 )
 
 load(
