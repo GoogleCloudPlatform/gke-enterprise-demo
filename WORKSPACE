@@ -142,7 +142,7 @@ go_repository(
 go_repository(
     name = "org_golang_google_api",
     importpath = "google.golang.org/api",
-    commit = "e5ba110cb6cd042d05ea6ea2ce9dd13198c6387a",
+    commit = "933d259cd41fa22cf7f160f0147e4dee6efc539f",
 )
 
 go_repository(
