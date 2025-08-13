@@ -172,7 +172,7 @@ go_repository(
 go_repository(
     name = "org_golang_x_sync",
     importpath = "golang.org/x/sync",
-    commit = "1d60e4601c6fd243af51cc01ddf169918a5407ca",
+    commit = "04914c200cb38d4ea960ee6a4c314a028c632991",
 )
 
 go_repository(
