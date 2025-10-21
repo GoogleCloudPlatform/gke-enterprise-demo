@@ -178,7 +178,7 @@ go_repository(
 go_repository(
     name = "org_golang_x_sys_unix",
     importpath = "golang.org/x/sys/unix",
-    commit = "af653ce8b74f808d092db8ca9741fbb63d2a469d",
+    commit = "ea436ef09d96eabb81a7a9aa95e7b57c793c6855",
     )
 
 go_repository(
